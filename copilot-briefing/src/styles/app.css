@@ -114,6 +114,19 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .statement .copy-btn{position:absolute;top:10px;right:10px}
 .statement .st-label{font-size:10px;font-weight:800;text-transform:uppercase;color:var(--blue);margin-bottom:6px;letter-spacing:.05em}
 
+/* Live source references */
+.cite{font-size:10px;font-weight:700;line-height:0;margin-left:1px}
+.cite a{color:var(--blue);text-decoration:none}
+.cite a:hover{text-decoration:underline}
+.src-note{font-size:12px;color:var(--gray);margin:10px 0 0}
+.sources{margin-top:16px;border-top:1px solid var(--border);padding-top:10px}
+.sources-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--gray);margin-bottom:6px}
+.sources-list{margin:0;padding-left:20px;font-size:12px;color:var(--slate)}
+.sources-list li{margin-bottom:4px}
+.sources-list a{color:var(--blue);text-decoration:none}
+.sources-list a:hover{text-decoration:underline}
+.sources-list .src-pub{color:var(--gray)}
+
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .badge-done{background:var(--lgreen);color:var(--green)}
 .badge-progress{background:var(--lamber);color:var(--amber)}
