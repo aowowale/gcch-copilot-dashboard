@@ -123,6 +123,8 @@ GitHub automation is included:
   - Validates root + both standalone apps on push/PR.
 - Dependabot config: `.github/dependabot.yml`
   - Weekly npm updates across all 3 package roots.
+- Playwright smoke workflow: `.github/workflows/smoke-playwright.yml`
+  - Validates core routes and Ask/decision-log interactions on each PR/push.
 
 ## Security hardening baseline
 
@@ -140,9 +142,29 @@ Security controls currently implemented in-repo:
 - CI and release workflows use explicit `permissions` and `concurrency` controls.
 - Dependabot covers npm dependencies and GitHub Actions.
 
+## GitHub OIDC deployment (recommended)
+
+This repo now includes OIDC-based deployment workflow for both live SWA surfaces:
+
+- Workflow: `.github/workflows/deploy-swa-oidc.yml`
+- Auth model: GitHub OIDC -> Azure AD workload identity (`Azure/login`)
+- No long-lived Azure client secret in GitHub.
+
+Required repository secrets:
+
+- `AZURE_CLIENT_ID`
+- `AZURE_TENANT_ID`
+- `AZURE_SUBSCRIPTION_ID`
+
+Optional repository variable:
+
+- `AZURE_CLOUD` (default: `AzureCloud`, set `AzureUSGovernment` for GCC High tenant automation)
+
 ## Dependency advisory note
 
 `react-router-dom` is pinned to latest stable (`7.18.2`) across all app surfaces. As of this snapshot, npm audit reports a high-severity advisory in a React Router server/RSC execution path. This project is a static client-side app (HashRouter) and does not expose React Router server action endpoints. Keep Dependabot enabled and retest advisories on each update.
+
+Track this as an accepted risk until upstream remediation is available; see `SECURITY.md` for the revalidation cadence.
 
 ## Open-source governance files
 

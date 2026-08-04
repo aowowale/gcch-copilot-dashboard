@@ -23,3 +23,7 @@ Thumbs.db
 
 # TS build info
 *.tsbuildinfo
+
+# Playwright artifacts
+test-results/
+playwright-report/
