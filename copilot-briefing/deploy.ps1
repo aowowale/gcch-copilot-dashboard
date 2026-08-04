@@ -31,6 +31,8 @@ if (-not (Get-Command az -ErrorAction SilentlyContinue)) {
   Fail "Azure CLI not found. Install Azure CLI before running this script."
 }
 
+$swaCliVersion = "2.0.10"
+
 $currentCloud = az cloud show --query name -o tsv
 Assert-LastExitCode "az cloud show" "Run 'az login' after selecting the correct cloud."
 
@@ -75,7 +77,7 @@ if (-not (Test-Path "dist")) {
   Fail "dist folder not found. Run 'npm run build' or drop -SkipBuild."
 }
 
-npx --yes @azure/static-web-apps-cli deploy ./dist --deployment-token "$token" --env production
+npx --yes "@azure/static-web-apps-cli@$swaCliVersion" deploy ./dist --deployment-token "$token" --env production
 Assert-LastExitCode "swa deploy"
 
 $url = az staticwebapp show -n $StaticWebAppName -g $ResourceGroup --query defaultHostname -o tsv

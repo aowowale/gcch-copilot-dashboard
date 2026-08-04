@@ -37,7 +37,7 @@ Assert-LastExitCode "az account set"
 az group create --name $ResourceGroup --location $Location --output none
 Assert-LastExitCode "az group create"
 
-az storage account create --name $StorageAccount --resource-group $ResourceGroup --location $Location --sku Standard_LRS --kind StorageV2 --output none
+az storage account create --name $StorageAccount --resource-group $ResourceGroup --location $Location --sku Standard_LRS --kind StorageV2 --https-only true --min-tls-version TLS1_2 --output none
 Assert-LastExitCode "az storage account create"
 
 az storage blob service-properties update --account-name $StorageAccount --auth-mode login --static-website --index-document index.html --404-document index.html --output none

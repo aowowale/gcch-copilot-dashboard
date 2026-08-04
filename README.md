@@ -124,6 +124,26 @@ GitHub automation is included:
 - Dependabot config: `.github/dependabot.yml`
   - Weekly npm updates across all 3 package roots.
 
+## Security hardening baseline
+
+Security controls currently implemented in-repo:
+
+- Static Web Apps response hardening via `staticwebapp.config.json` in each app surface:
+  - `X-Content-Type-Options: nosniff`
+  - `Strict-Transport-Security`
+  - `Referrer-Policy`
+  - `Permissions-Policy`
+  - baseline `Content-Security-Policy`
+- Deployment scripts pin SWA CLI version to avoid floating supply-chain pulls.
+- Storage deploy script enforces HTTPS-only and minimum TLS 1.2.
+- App Service deploy script enforces HTTPS-only and minimum TLS 1.2.
+- CI and release workflows use explicit `permissions` and `concurrency` controls.
+- Dependabot covers npm dependencies and GitHub Actions.
+
+## Dependency advisory note
+
+`react-router-dom` is pinned to latest stable (`7.18.2`) across all app surfaces. As of this snapshot, npm audit reports a high-severity advisory in a React Router server/RSC execution path. This project is a static client-side app (HashRouter) and does not expose React Router server action endpoints. Keep Dependabot enabled and retest advisories on each update.
+
 ## Open-source governance files
 
 This repository includes baseline governance/trust files for public collaboration:

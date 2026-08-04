@@ -30,6 +30,9 @@ if ($LASTEXITCODE -ne 0) { throw "Failed to create resource group" }
 az webapp up --name $AppName --resource-group $ResourceGroup --location $Location --runtime "NODE:22-lts" --sku B1 --track-status false
 if ($LASTEXITCODE -ne 0) { throw "Failed to deploy web app" }
 
+az webapp update --name $AppName --resource-group $ResourceGroup --https-only true --set siteConfig.minTlsVersion=1.2 --output none
+if ($LASTEXITCODE -ne 0) { throw "Failed to enforce HTTPS/TLS settings" }
+
 $url = "https://$AppName.azurewebsites.net"
 Write-Host ""
 Write-Host "Deployment complete."

@@ -49,8 +49,13 @@ if (-not $SkipLogin) {
 az account set --subscription $SubscriptionId | Out-Null
 Assert-LastExitCode "az account set"
 
-npm install
-Assert-LastExitCode "npm install"
+if (Test-Path "package-lock.json") {
+  npm ci
+  Assert-LastExitCode "npm ci"
+} else {
+  npm install
+  Assert-LastExitCode "npm install"
+}
 
 npm run build
 Assert-LastExitCode "npm run build"
