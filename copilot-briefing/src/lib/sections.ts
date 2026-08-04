@@ -2,6 +2,7 @@ export interface SectionDef { id: string; num: string; name: string }
 
 export const SECTIONS: SectionDef[] = [
   { id: 'home', num: '00', name: 'Homepage' },
+  { id: 'tracker', num: '21', name: 'Live Tracker (Start Here)' },
   { id: 'concerns', num: '01', name: 'Your Concerns' },
   { id: 'controls', num: '02', name: 'Controls In Place' },
   { id: 'planes', num: '03', name: 'Four Data Planes' },
@@ -22,6 +23,5 @@ export const SECTIONS: SectionDef[] = [
   { id: 'ask', num: '18', name: 'The Ask' },
   { id: 'reference', num: '19', name: 'Technical Reference' },
   { id: 'testplan', num: '20', name: 'Test Plan' },
-  { id: 'tracker', num: '21', name: 'Live Tracker' },
   { id: 'other', num: '22', name: 'Other' },
 ]

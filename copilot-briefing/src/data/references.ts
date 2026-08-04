@@ -59,6 +59,11 @@ export const REFERENCES: Record<string, SourceRef> = {
     url: 'https://learn.microsoft.com/en-us/sharepoint/restricted-sharepoint-search',
     publisher: 'Microsoft Learn',
   },
+  rcd: {
+    label: 'Restrict discovery of SharePoint sites and content (Restricted Content Discovery)',
+    url: 'https://learn.microsoft.com/en-us/sharepoint/restricted-content-discovery',
+    publisher: 'Microsoft Learn',
+  },
   conditionalAccess: {
     label: 'Microsoft Entra Conditional Access: Zero Trust policy engine',
     url: 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview',

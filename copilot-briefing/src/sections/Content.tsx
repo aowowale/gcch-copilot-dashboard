@@ -9,43 +9,44 @@ export function Rss() {
   return (
     <>
       <SectionHead num="07" title="RSS — Current State">
-        Restricted SharePoint Search<Cite n={1} id="rss" /> is enabled with no allowed list. Here is what that means.
+        Restricted SharePoint Search (RSS) is now retired for new enablement<Cite n={1} id="rss" />.
+        Restricted Content Discovery (RCD) is the recommended successor<Cite n={2} id="rcd" /> for GCCH customer
+        rollout governance.
       </SectionHead>
       <SpeakerNote>
-        RSS is enabled with NO allowed list — SharePoint completely locked. IMPORTANT: the customer correctly
-        flagged that RSS affects the entire org-wide search index, not just Copilot. This should go through a CR
-        documenting user impact and a plan to populate the allowed list so search is not broken. Acknowledge this
-        directly — it builds trust.
+        Key update for customer conversations: as of current Microsoft guidance, RSS cannot be newly enabled.
+        Existing RSS tenants should plan transition to RCD. In GCC High engagements, position RCD as the primary
+        governance control and document any legacy RSS posture as transitional.
       </SpeakerNote>
       <div className="grid grid-2">
         <div className="card" style={{ borderLeft: '5px solid var(--green)' }}>
-          <div className="card-h">SharePoint Plane — LOCKED</div>
-          <p style={{ fontSize: 13, color: 'var(--gray)' }}>Zero sites accessible to Copilot. The allowed list is empty. Every SharePoint site is off limits until explicitly reviewed and added. All 249 oversharing sites invisible.</p>
+          <div className="card-h">Legacy RSS posture (if already enabled)</div>
+          <p style={{ fontSize: 13, color: 'var(--gray)' }}>Some existing tenants may still run RSS controls while transitioning. Treat this as a temporary state only. New RSS enablement is blocked, and long-term operations should move to RCD.</p>
           <div style={{ marginTop: 14 }}>
             <div className="counter-big" style={{ color: 'var(--green)' }}>0<span style={{ fontSize: 16, color: 'var(--gray)' }}>/249</span></div>
-            <div style={{ fontSize: 11, color: 'var(--gray)' }}>sites on allowed list</div>
+            <div style={{ fontSize: 11, color: 'var(--gray)' }}>legacy allowed list sites (example)</div>
           </div>
         </div>
         <div className="card" style={{ borderLeft: '5px solid var(--amber)' }}>
-          <div className="card-h">Graph Plane — ACTIVE</div>
-          <p style={{ fontSize: 13, color: 'var(--gray)' }}>Email, Teams, calendar, own OneDrive remain accessible. No RSS equivalent exists for this plane. This is the user's own data they already access daily. Governed by DLP and retention.</p>
+          <div className="card-h">RCD target state (recommended)</div>
+          <p style={{ fontSize: 13, color: 'var(--gray)' }}>RCD is site-level, governance-driven, and designed for phased Copilot readiness. It limits discovery for selected sites while preserving permissions and supports controlled GCC High rollout progression.</p>
         </div>
       </div>
       <div className="card" style={{ marginTop: 16, background: 'var(--lamber)', border: '1px solid var(--amber)' }}>
-        <div className="card-h" style={{ color: 'var(--amber)' }}>⚠ Important — RSS affects all-user search</div>
-        <p style={{ fontSize: 13, color: '#78350F' }}>RSS is not Copilot-only. It restricts the organization-wide M365 search index for all users. Searching from the SharePoint start page or M365 search returns only the user's own content until sites are added to the allowed list. This should go through a change request documenting user impact and a plan to populate the allowed list quickly.</p>
+        <div className="card-h" style={{ color: 'var(--amber)' }}>⚠ Transition note for GCCH customers</div>
+        <p style={{ fontSize: 13, color: '#78350F' }}>If RSS is currently active in a tenant, keep a documented transition plan to RCD with owner, dates, and validation checkpoints. For new workloads, skip RSS and implement RCD directly with SharePoint governance and Purview controls.</p>
       </div>
       <div className="card" style={{ marginTop: 16 }}>
-        <div className="card-h">Criteria to add a site to the allowed list</div>
+        <div className="card-h">RCD readiness criteria for site onboarding</div>
         <ul className="pd-list pd-done" style={{ fontSize: 13 }}>
-          <li>Sensitivity label applied to the site<Cite n={2} id="purviewAI" /></li>
+          <li>Sensitivity label applied to the site<Cite n={3} id="purviewAI" /></li>
           <li>EEEU (Everyone Except External Users) permissions removed or exception approved</li>
           <li>Site owner confirmed and notified</li>
           <li>Access review completed</li>
           <li>Governance team sign-off</li>
         </ul>
       </div>
-      <Sources ids={['rss', 'purviewAI']} />
+      <Sources ids={['rss', 'rcd', 'purviewAI']} />
     </>
   )
 }

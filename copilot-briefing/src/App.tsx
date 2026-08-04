@@ -49,7 +49,7 @@ function SectionView() {
     if (el) el.scrollTop = 0
   }, [id])
   if (!def || !Comp) {
-    navigate('/concerns', { replace: true })
+    navigate('/home', { replace: true })
     return null
   }
   return <div className="section active">{<Comp />}</div>
@@ -64,9 +64,9 @@ export default function App() {
           <Topbar />
           <div className="content">
             <Routes>
-              <Route path="/" element={<Navigate to="/concerns" replace />} />
+              <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/:id" element={<SectionView />} />
-              <Route path="*" element={<Navigate to="/concerns" replace />} />
+              <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>
           </div>
         </div>

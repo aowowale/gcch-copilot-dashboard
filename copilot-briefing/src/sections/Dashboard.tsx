@@ -3,8 +3,8 @@ import { SectionHead } from '../components/Primitives'
 export function Tracker() {
   return (
     <>
-      <SectionHead num="21" title="Live Tracker">
-        Interactive dashboard tracker.
+      <SectionHead num="21" title="Live Tracker — Start Here">
+        GCCH readiness snapshot and action tracker. Review this first before deep-dive sections.
       </SectionHead>
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>

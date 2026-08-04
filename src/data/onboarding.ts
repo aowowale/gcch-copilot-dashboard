@@ -99,7 +99,7 @@ export const templates: CloudTemplate[] = [
         domain: 'governance',
         title: 'SharePoint aperture controls (RSS/RCD)',
         why: 'Constrain discoverability during early rollout phases.',
-        how: 'Enable RSS by change process and apply RCD to high-risk sites pending remediation.',
+        how: 'Do not newly enable RSS (retired for new enablement). Apply RCD to high-risk sites pending remediation and document transition plans for any legacy RSS tenants.',
         ownerRole: 'SharePoint Admin',
         evidence: 'PowerShell output + site-level validation',
         phase: 'pilot'

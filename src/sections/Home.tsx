@@ -157,16 +157,16 @@ export function Home() {
   return (
     <>
       <SectionHead num="00" title="Copilot Onboarding Hub">
-        Reusable homepage for any team: readiness, next actions, blockers, evidence, role kits, and operating cadence.
+        GCC High onboarding workspace: readiness, next actions, blockers, evidence, role kits, and operating cadence.
       </SectionHead>
 
       <div className="card hub-hero">
         <div>
-          <div className="hub-kicker">Team Onboarding Workspace</div>
+          <div className="hub-kicker">GCCH Customer Journey Workspace</div>
           <div className="hub-title">{profile.teamName}</div>
           <p className="hub-sub">{template.label} template · {template.guidance}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
-            <button className="btn btn-primary" onClick={() => nav('/controls')}>Start onboarding</button>
+            <button className="btn btn-primary" onClick={() => nav('/tracker')}>Start with live tracker</button>
             <button className="btn" onClick={() => document.getElementById('immediate-actions')?.scrollIntoView({ behavior: 'smooth' })}>Resume where we left off</button>
             <button className="btn" onClick={() => setSetupOpen((v) => !v)}>{setupOpen ? 'Hide setup' : 'Open setup wizard'}</button>
           </div>
