@@ -54,4 +54,24 @@ export const REFERENCES: Record<string, SourceRef> = {
     url: 'https://learn.microsoft.com/en-us/purview/audit-log-activities',
     publisher: 'Microsoft Learn',
   },
+  rss: {
+    label: 'Restricted SharePoint Search',
+    url: 'https://learn.microsoft.com/en-us/sharepoint/restricted-sharepoint-search',
+    publisher: 'Microsoft Learn',
+  },
+  conditionalAccess: {
+    label: 'Microsoft Entra Conditional Access: Zero Trust policy engine',
+    url: 'https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview',
+    publisher: 'Microsoft Learn',
+  },
+  dlpCopilot: {
+    label: 'Microsoft Purview DLP for Microsoft 365 Copilot and Copilot Chat',
+    url: 'https://learn.microsoft.com/en-us/purview/dlp-microsoft365-copilot-location-learn-about',
+    publisher: 'Microsoft Learn',
+  },
+  defenderCloudApps: {
+    label: 'Microsoft Defender for Cloud Apps overview',
+    url: 'https://learn.microsoft.com/en-us/defender-cloud-apps/what-is-defender-for-cloud-apps',
+    publisher: 'Microsoft Learn',
+  },
 }

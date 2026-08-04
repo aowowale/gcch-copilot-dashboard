@@ -45,7 +45,13 @@ export function Cite({ n, id }: { n: number; id: string }) {
   if (!ref) return null
   return (
     <sup className="cite">
-      <a href={ref.url} target="_blank" rel="noopener noreferrer" title={`${ref.label} — ${ref.publisher}`}>[{n}]</a>
+      <a
+        href={ref.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={`${ref.label} — ${ref.publisher}`}
+        onClick={(e) => e.stopPropagation()}
+      >[{n}]</a>
     </sup>
   )
 }

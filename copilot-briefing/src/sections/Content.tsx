@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { SectionHead, SpeakerNote, CopyButton } from '../components/Primitives'
+import { SectionHead, SpeakerNote, CopyButton, Cite, Sources } from '../components/Primitives'
 import {
   guardrails, dlp, aiLayers, samPlan, acceptance, humanRisk, lessons,
   endpoints, sam, gotchas, traceability, failures,
@@ -9,7 +9,7 @@ export function Rss() {
   return (
     <>
       <SectionHead num="07" title="RSS — Current State">
-        Restricted SharePoint Search is enabled with no allowed list. Here is what that means.
+        Restricted SharePoint Search<Cite n={1} id="rss" /> is enabled with no allowed list. Here is what that means.
       </SectionHead>
       <SpeakerNote>
         RSS is enabled with NO allowed list — SharePoint completely locked. IMPORTANT: the customer correctly
@@ -38,13 +38,14 @@ export function Rss() {
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-h">Criteria to add a site to the allowed list</div>
         <ul className="pd-list pd-done" style={{ fontSize: 13 }}>
-          <li>Sensitivity label applied to the site</li>
+          <li>Sensitivity label applied to the site<Cite n={2} id="purviewAI" /></li>
           <li>EEEU (Everyone Except External Users) permissions removed or exception approved</li>
           <li>Site owner confirmed and notified</li>
           <li>Access review completed</li>
           <li>Governance team sign-off</li>
         </ul>
       </div>
+      <Sources ids={['rss', 'purviewAI']} />
     </>
   )
 }
@@ -55,7 +56,8 @@ export function Guardrails() {
   return (
     <>
       <SectionHead num="08" title="Guardrails — What Actually Happens">
-        Two layers. The behavior matrix shows what blocks, what filters, what alerts.
+        Two layers. The behavior matrix shows what blocks, what filters, what alerts — enforced through Microsoft
+        Purview DLP<Cite n={1} id="dlpCopilot" /> and sensitivity labels<Cite n={2} id="purviewAI" />.
       </SectionHead>
       <SpeakerNote>
         Two layers: model safety (always on, no admin visibility, no alerting) and policy enforcement (Purview —
@@ -101,6 +103,7 @@ export function Guardrails() {
         ))}
         <p style={{ fontSize: 12, color: 'var(--red)', marginTop: 10, fontWeight: 600 }}>Use clearly fictional test content only. Never use actual classified or sensitive content.</p>
       </div>
+      <Sources ids={['dlpCopilot', 'purviewAI']} />
     </>
   )
 }
@@ -109,7 +112,8 @@ export function Dlp() {
   return (
     <>
       <SectionHead num="09" title="DLP Decision Framework">
-        Three scenarios, three distinct DLP conversations. The hard block vs alert distinction is critical.
+        Three scenarios, three distinct DLP<Cite n={1} id="dlpCopilot" /> conversations. The hard block vs alert
+        distinction is critical — web grounding is a separate authorization conversation<Cite n={2} id="webSearch" />.
       </SectionHead>
       <SpeakerNote>
         For go-live: DLP in audit mode gives visibility, not blocking. Web grounding is not a DLP conversation,
@@ -132,6 +136,7 @@ export function Dlp() {
           <div style={{ marginTop: 8 }}><span className="badge badge-progress">Gate: {d.gate}</span></div>
         </div>
       ))}
+      <Sources ids={['dlpCopilot', 'webSearch']} />
     </>
   )
 }
@@ -142,7 +147,8 @@ export function AiSec() {
   return (
     <>
       <SectionHead num="10" title="Federal AI Security Framework">
-        The seven-layer control model with federal reality ratings. Click each layer.
+        The seven-layer control model with federal reality ratings. Identity and Purview data controls<Cite n={1} id="purviewAI" />
+        carry the model; enterprise data protection<Cite n={2} id="edp" /> underpins the AI layer. Click each layer.
       </SectionHead>
       <SpeakerNote>
         The framing that lands: "Federal AI security is identity- and data-driven, not AI-native." Strong:
@@ -169,6 +175,7 @@ export function AiSec() {
         Federal AI security is currently identity- and data-driven, not AI-native. Control strategy must assume
         the AI layer is partially untrusted and compensate above and below it with identity and data controls.
       </div>
+      <Sources ids={['purviewAI', 'edp']} />
     </>
   )
 }
@@ -178,7 +185,8 @@ export function Sam() {
   return (
     <>
       <SectionHead num="06" title="SAM Findings & Remediation Plan">
-        The data governance findings and the parallel pipeline for moving forward — without blocking deployment.
+        The data governance findings and the parallel pipeline for moving forward — Restricted SharePoint Search<Cite n={1} id="rss" />
+        plus Purview data governance<Cite n={2} id="purviewAI" /> — without blocking deployment.
       </SectionHead>
       <SpeakerNote>
         Lead with the control model box and the core principle: remediation pace sets expansion pace, not
@@ -243,6 +251,7 @@ export function Sam() {
       <div className="card" style={{ marginTop: 12, background: 'var(--ltgray)' }}>
         <p style={{ fontSize: 12, color: 'var(--gray)' }}><strong>Timeline note:</strong> {s.timelineNote}</p>
       </div>
+      <Sources ids={['rss', 'purviewAI']} />
     </>
   )
 }
@@ -353,7 +362,7 @@ export function Trace() {
   const t = traceability as any
   return (
     <>
-      <SectionHead num="12" title="Operational Traceability">{t.intro}</SectionHead>
+      <SectionHead num="12" title="Operational Traceability">{t.intro}<Cite n={1} id="auditCopilot" /></SectionHead>
       <SpeakerNote>
         This is the artifact an AO probes hardest. Do not just say "auditable" — walk the reconstruction chain.
         Be explicit that the log sample is representative schema, not a tenant capture, and that completeness is a
@@ -395,6 +404,7 @@ export function Trace() {
         <div style={{ fontFamily: 'monospace', fontSize: 13, color: 'var(--navy)', fontWeight: 600 }}>{t.irFlow}</div>
         <p style={{ fontSize: 12.5, color: 'var(--gray)', marginTop: 8 }}>Answers the SOC question directly: can my team actually use this? The pilot validates ingestion and correlation into Sentinel Gov.</p>
       </div>
+      <Sources ids={['auditCopilot']} />
     </>
   )
 }

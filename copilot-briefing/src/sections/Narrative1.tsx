@@ -1,6 +1,20 @@
 import { useState } from 'react'
-import { CopyButton, SectionHead, SpeakerNote } from '../components/Primitives'
+import { CopyButton, SectionHead, SpeakerNote, Cite, Sources } from '../components/Primitives'
 import { fears, controls, pending, planes } from '../data/content'
+
+// Each concern maps to the authoritative Microsoft source that backs its control.
+// The order here defines the [n] numbering shown in the Sources list.
+const CONCERNS_SOURCES = ['rss', 'dlpCopilot', 'edp', 'conditionalAccess', 'purviewAI', 'privacy', 'defenderCloudApps', 'webSearch']
+const FEAR_CITE: Record<string, { n: number; id: string }> = {
+  f1: { n: 1, id: 'rss' },
+  f2: { n: 2, id: 'dlpCopilot' },
+  f3: { n: 3, id: 'edp' },
+  f4: { n: 4, id: 'conditionalAccess' },
+  f5: { n: 5, id: 'purviewAI' },
+  f6: { n: 6, id: 'privacy' },
+  f7: { n: 7, id: 'defenderCloudApps' },
+  f8: { n: 8, id: 'webSearch' },
+}
 
 export function Concerns() {
   const [open, setOpen] = useState<string | null>(null)
@@ -25,7 +39,10 @@ export function Concerns() {
                 {f.q}
                 <svg className="chevron" viewBox="0 0 24 24"><path d="M7 10l5 5 5-5z" /></svg>
               </div>
-              <div className="fc-short">{f.short}</div>
+              <div className="fc-short">
+                {f.short}
+                {FEAR_CITE[f.id] && <Cite n={FEAR_CITE[f.id].n} id={FEAR_CITE[f.id].id} />}
+              </div>
             </div>
             {open === f.id && (
               <div className="fc-body open">
@@ -38,8 +55,18 @@ export function Concerns() {
           </div>
         ))}
       </div>
+      <Sources ids={CONCERNS_SOURCES} />
     </>
   )
+}
+
+// Control categories mapped to their governing Microsoft documentation.
+const CONTROLS_SOURCES = ['conditionalAccess', 'webSearch', 'rss', 'dlpCopilot', 'auditCopilot', 'purviewAI']
+const CAT_CITE: Record<string, { n: number; id: string }[]> = {
+  Identity: [{ n: 1, id: 'conditionalAccess' }],
+  Boundary: [{ n: 2, id: 'webSearch' }, { n: 3, id: 'rss' }],
+  Access: [{ n: 4, id: 'dlpCopilot' }],
+  Compliance: [{ n: 5, id: 'auditCopilot' }, { n: 6, id: 'purviewAI' }],
 }
 
 export function Controls() {
@@ -109,7 +136,10 @@ export function Controls() {
       <div className="grid grid-2">
         {cats.map((cat) => (
           <div className="ctrl-cat" key={cat}>
-            <div className="ctrl-cat-h">{cat}</div>
+            <div className="ctrl-cat-h">
+              {cat}
+              {CAT_CITE[cat]?.map((c) => <Cite key={c.id} n={c.n} id={c.id} />)}
+            </div>
             {model[cat].map((c: any, i: number) => {
               const k = cat + i
               const pState = cat === 'Pending' ? pendingState[i] : null
@@ -164,9 +194,13 @@ export function Controls() {
           </div>
         ))}
       </div>
+      <Sources ids={CONTROLS_SOURCES} />
     </>
   )
 }
+
+// Data-plane references: SharePoint (RSS), Microsoft Graph (privacy), the web (web search).
+const PLANES_SOURCES = ['rss', 'privacy', 'webSearch']
 
 export function Planes() {
   const [open, setOpen] = useState<string | null>(null)
@@ -174,7 +208,8 @@ export function Planes() {
   return (
     <>
       <SectionHead num="03" title="The Four Data Planes">
-        Copilot pulls from four data planes. Each has a different risk profile and control. Click to expand.
+        Copilot pulls from four data planes — SharePoint<Cite n={1} id="rss" />, Microsoft Graph<Cite n={2} id="privacy" />,
+        the web<Cite n={3} id="webSearch" />, and extensibility. Each has a different risk profile and control. Click to expand.
       </SectionHead>
       <SpeakerNote>
         Key insight: with RSS at zero allowed list, SharePoint is locked. The Graph plane (email, Teams)
@@ -197,6 +232,7 @@ export function Planes() {
           </div>
         ))}
       </div>
+      <Sources ids={PLANES_SOURCES} />
     </>
   )
 }
