@@ -33,6 +33,15 @@ az login
 ./deploy.ps1 -ForceBuild     # force a fresh build, then deploy
 ```
 
+## Governance and reuse docs
+
+This standalone app follows repository-level governance documents at the repo root:
+
+- `../LICENSE`
+- `../CONTRIBUTING.md`
+- `../SECURITY.md`
+- `../RELEASING.md`
+
 ## Structure
 
 | Area | Path |

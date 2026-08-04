@@ -57,6 +57,15 @@ The briefing is GCCH-focused and includes:
 - RCD as the recommended successor
 - tracker-first onboarding journey
 
+## Governance and reuse docs
+
+This standalone app follows repository-level governance documents at the repo root:
+
+- `../LICENSE`
+- `../CONTRIBUTING.md`
+- `../SECURITY.md`
+- `../RELEASING.md`
+
 ## Project map
 
 | Area | Path |

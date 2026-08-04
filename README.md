@@ -124,6 +124,35 @@ GitHub automation is included:
 - Dependabot config: `.github/dependabot.yml`
   - Weekly npm updates across all 3 package roots.
 
+## Open-source governance files
+
+This repository includes baseline governance/trust files for public collaboration:
+
+- License: `LICENSE` (MIT)
+- Contribution guide: `CONTRIBUTING.md`
+- Security policy: `SECURITY.md`
+- Release/versioning guide: `RELEASING.md`
+- Code ownership: `.github/CODEOWNERS`
+- PR and issue templates in `.github/`
+
+If your organization requires different legal or security terms, fork and replace these files first.
+
+## Release and versioning conventions
+
+Use semantic tags for source-of-truth releases:
+
+- Stable: `vMAJOR.MINOR.PATCH`
+- Pre-release: `vMAJOR.MINOR.PATCH-rc.N`
+
+Quick example:
+
+```powershell
+git tag -a v1.0.0 -m "Release v1.0.0"
+git push origin v1.0.0
+```
+
+Publishing a GitHub Release from the tag triggers artifact packaging via `.github/workflows/release-artifacts.yml`.
+
 ## Reusable onboarding journey
 
 The onboarding flow is designed to reduce confusion for first-time users:
@@ -155,6 +184,8 @@ If you intend to reuse this for your tenant/customer:
 2. Update content in `src/data/*`.
 3. Keep references in `src/data/references.ts` verified and live.
 4. Run local builds for all app surfaces before publishing.
+
+For full contribution workflow and quality expectations, see `CONTRIBUTING.md`.
 
 ## New Customer Setup Checklist
 
