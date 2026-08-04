@@ -18,6 +18,8 @@ export interface AppState {
   onboardingOwners: Record<string, string>
   onboardingBlockers: Array<{ id: string; title: string; owner: string; severity: 'Low' | 'Medium' | 'High'; status: 'Open' | 'Resolved' }>
   onboardingEvidence: EvidenceItem[]
+  guidedMode: boolean
+  guidedStep: number
 }
 
 function defaultState(): AppState {
@@ -57,6 +59,8 @@ function defaultState(): AppState {
       { id: 'ev-2', title: 'DLP pilot test report', owner: 'CyberOps', status: 'partial', link: '' },
       { id: 'ev-3', title: 'Retention policy artifact', owner: 'Compliance Admin', status: 'missing', link: '' }
     ],
+    guidedMode: false,
+    guidedStep: 0,
   }
 }
 
@@ -78,6 +82,8 @@ function load(): AppState {
       if (d.onboardingOwners) base.onboardingOwners = { ...base.onboardingOwners, ...d.onboardingOwners }
       if (d.onboardingBlockers) base.onboardingBlockers = d.onboardingBlockers
       if (d.onboardingEvidence) base.onboardingEvidence = d.onboardingEvidence
+      if (typeof d.guidedMode === 'boolean') base.guidedMode = d.guidedMode
+      if (typeof d.guidedStep === 'number') base.guidedStep = d.guidedStep
     }
   } catch { /* ignore corrupt storage */ }
   return base

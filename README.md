@@ -1,167 +1,163 @@
-# M365 Copilot - GCC High Deployment Briefing
+# M365 Copilot GCCH Briefing and Onboarding
 
-This workspace now uses the imported React + TypeScript Vite source from `GCCH_Copilot_Briefing_React_Source.zip`.
-The deployable output is static content in `dist/`.
+Reusable deployment-readiness experience for Microsoft 365 Copilot, with a strong GCC High (GCCH) focus and live source citations.
 
-## Run locally
+This repository is designed to be public-friendly and portable:
+- Build and run locally with standard Node + Vite.
+- Deploy static output to any host (Azure, GitHub Pages, CDN, S3-compatible, Nginx, etc.).
+- Optional Azure scripts are included for teams that want one-command deployment.
+
+## What is in this repo
+
+There are 3 app surfaces:
+
+1. Root combined app (multi-entry build)
+- Main briefing app: `index.html` -> `src/main.tsx`
+- Reusable onboarding hub: `homev2.html` -> `src/main-homev2.tsx`
+
+2. Standalone briefing app
+- Path: `copilot-briefing/`
+- Purpose: focused GCCH briefing deployment (red-glacier target)
+
+3. Standalone onboarding hub app
+- Path: `copilot-onboarding-hub/`
+- Purpose: reusable onboarding journey experience
+
+## Prerequisites
+
+- Node.js 20 LTS (recommended)
+- npm 10+
+
+Optional for Azure scripts:
+- Azure CLI
+- Static Web Apps CLI (`swa`)
+- PowerShell 7+
+
+## Quick start (local)
+
+From repo root:
 
 ```powershell
 npm install
 npm run dev
 ```
 
-## Build for production
+Build root app:
 
 ```powershell
 npm run build
+npm run preview
 ```
 
-Build output is generated in dist.
+Standalone apps:
 
-## Standalone Interactive Briefing (single HTML)
+```powershell
+cd .\copilot-briefing
+npm install
+npm run build
 
-This workspace can also produce a true single-file briefing deliverable:
-- `GCCH_Copilot_Interactive_Briefing.html` (self-contained, no external assets required)
+cd ..\copilot-onboarding-hub
+npm install
+npm run build
+```
 
-Generate it after a build:
+## Public distribution model (recommended)
+
+For customers who want to host anywhere:
+
+1. Build the app (`npm run build`).
+2. Publish the generated static files from `dist/`.
+3. Ensure host rewrites all routes to `index.html` if not using hash routing.
+
+This project already uses HashRouter for briefing routes, so most static hosts work without custom rewrite rules.
+
+## GCCH-focused notes
+
+- Content is explicitly written for GCCH customer onboarding and control validation.
+- RSS guidance is updated:
+  - Restricted SharePoint Search (RSS) is retired for new enablement.
+  - Restricted Content Discovery (RCD) is the recommended successor.
+- Source citations are live and centralized in `src/data/references.ts`.
+
+## Deployment options
+
+### Option A: Generic static hosting (cloud-agnostic)
+
+Use any host that serves static files:
+- Azure Storage static website
+- Azure Static Web Apps
+- GitHub Pages
+- Cloudflare Pages
+- S3 + CloudFront
+- Nginx/Apache
+
+Publish `dist/` from the surface you built.
+
+### Option B: Azure Static Web Apps scripts (included)
+
+Root combined app:
+
+```powershell
+./deploy-azure-swa.ps1
+```
+
+Standalone briefing:
+
+```powershell
+cd .\copilot-briefing
+./deploy.ps1
+```
+
+GCCH cloud context example:
+
+```powershell
+az cloud set --name AzureUSGovernment
+az login --tenant <tenant-id>
+az account set --subscription <subscription-id>
+```
+
+## CI and dependency hygiene
+
+GitHub automation is included:
+- Build matrix workflow: `.github/workflows/ci-build.yml`
+  - Validates root + both standalone apps on push/PR.
+- Dependabot config: `.github/dependabot.yml`
+  - Weekly npm updates across all 3 package roots.
+
+## Reusable onboarding journey
+
+The onboarding flow is designed to reduce confusion for first-time users:
+
+1. Home (context)
+2. Live Tracker (status and priorities)
+3. Controls In Place (implementation detail)
+4. The Ask (decision capture)
+
+Guided mode is available in the UI and follows this sequence.
+
+## Standalone single-file briefing artifact
+
+Generate the single-file HTML briefing artifact:
 
 ```powershell
 npm run build
 ./build-standalone-briefing.ps1
 ```
 
-The output file is in project root:
+Output:
 - `GCCH_Copilot_Interactive_Briefing.html`
 
-If you want this standalone file hosted at the same URL path after deployment, copy it into `dist` before deploying:
+## Contributing
 
-```powershell
-Copy-Item .\GCCH_Copilot_Interactive_Briefing.html .\dist\GCCH_Copilot_Interactive_Briefing.html -Force
-```
+If you intend to reuse this for your tenant/customer:
 
-## Updating from a new zip drop
+1. Fork the repo.
+2. Update content in `src/data/*`.
+3. Keep references in `src/data/references.ts` verified and live.
+4. Run local builds for all app surfaces before publishing.
 
-If you receive new files like `*_Source.zip` and `*_Dist.zip`:
+## Troubleshooting
 
-1. Prefer the `*_Source.zip` package (source of truth).
-2. Extract it and copy these items into this project root:
-	- `src/`
-	- `public/` (if present)
-	- `index.html`
-	- `package.json`
-	- `package-lock.json`
-	- `tsconfig.json`
-	- `vite.config.ts`
-3. Run:
-
-```powershell
-npm install
-npm run build
-```
-
-4. Deploy using the script below.
-
-Use the `*_Dist.zip` package only when you want to deploy prebuilt static files as-is and do not need source edits.
-
-## Deploy to Azure Static Web Apps (recommended)
-
-```powershell
-./deploy-azure-swa.ps1
-```
-
-Optional parameters:
-
-```powershell
-./deploy-azure-swa.ps1 -ResourceGroup rg-name -Location eastus2 -StaticWebAppName my-unique-swa-name -SubscriptionId <subscription-id>
-```
-
-This script creates or reuses an Azure Static Web App, retrieves a deployment token, and deploys dist.
-Before deploy, it also creates a friendly alias file:
-- `dist/GCCH_Copilot_Interactive_Briefing.html` (copy of `dist/index.html`)
-
-Note: this `dist` alias references `dist/assets/*`. For a single self-contained file, use `build-standalone-briefing.ps1`.
-
-### Deploy in another tenant (including GCCH)
-
-1. Select the correct cloud first:
-
-```powershell
-az cloud set --name AzureUSGovernment   # for GCCH/Azure Government
-# az cloud set --name AzureCloud        # for commercial
-```
-
-2. Sign in to the target tenant and set subscription:
-
-```powershell
-az login --tenant <tenant-id>
-az account set --subscription <subscription-id>
-```
-
-Quick tenant/subscription discovery:
-
-```powershell
-az account show --query "{subscriptionId:id,subscriptionName:name,tenantId:tenantId,user:user.name,cloud:environmentName}" -o jsonc
-az account list -o table
-```
-
-3. Run deployment with a cloud-appropriate region:
-
-```powershell
-./deploy-azure-swa.ps1 -SubscriptionId <subscription-id> -ResourceGroup rg-name -StaticWebAppName my-swa-name -Location usgovvirginia
-```
-
-Notes:
-- In AzureUSGovernment, use a `usgov*` region.
-- Script fails early if cloud and region do not match.
-- Account needs permission to create/read static web apps and list secrets (`Microsoft.Web/staticSites/listSecrets/action`).
-
-### Fast redeploy after app changes
-
-If you edited source and already built:
-
-```powershell
-./deploy-azure-swa.ps1 -StaticWebAppName <existing-swa-name> -SkipBuild
-```
-
-If you want one command to rebuild and redeploy:
-
-```powershell
-./deploy-azure-swa.ps1 -StaticWebAppName <existing-swa-name> -ForceBuild
-```
-
-## ASAP GCCH one-command deployment (app + standalone)
-
-Use this wrapper script to deploy all artifacts quickly into GCCH:
-
-```powershell
-./deploy-gcch-all.ps1 -TenantId <tenant-id> -SubscriptionId <subscription-id> -StaticWebAppName <unique-swa-name>
-```
-
-Optional: include your legacy standalone file as a second hosted path:
-
-```powershell
-./deploy-gcch-all.ps1 -TenantId <tenant-id> -SubscriptionId <subscription-id> -StaticWebAppName <unique-swa-name> -LegacyStandalonePath "C:\path\GCCH_Copilot_Interactive_Briefing (1).html"
-```
-
-This deploys:
-- Main sectioned app: `https://<swa-name>.1.azurestaticapps.net/#/concerns`
-- Current standalone: `https://<swa-name>.1.azurestaticapps.net/GCCH_Copilot_Interactive_Briefing.html`
-- Legacy standalone (if provided): `https://<swa-name>.1.azurestaticapps.net/GCCH_Copilot_Interactive_Briefing_Legacy.html`
-
-## Deploy to Azure Static Website (Storage Account)
-
-```powershell
-./deploy-azure-static.ps1
-```
-
-Optional parameters:
-
-```powershell
-./deploy-azure-static.ps1 -ResourceGroup rg-name -Location eastus2 -StorageAccount uniqueacctname -SubscriptionId <subscription-id>
-```
-
-The script creates/uses a resource group and storage account, enables static website hosting, uploads dist, and prints the public URL.
-Before upload, it also creates:
-- `dist/GCCH_Copilot_Interactive_Briefing.html` (copy of `dist/index.html`)
-
-Note: some environments enforce Azure AD-only blob auth and can block this path if storage data-plane RBAC is not granted.
+- If `npm` is not recognized in PowerShell, refresh PATH or open a new shell.
+- If deployment fails in GCCH, confirm cloud/region alignment and RBAC permissions.
+- If tracker iframe shows 404 in a standalone app, confirm `public/gcch-dashboard-tracker.html` exists in that standalone project.

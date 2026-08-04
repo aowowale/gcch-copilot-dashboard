@@ -153,6 +153,19 @@ export function Home() {
 
   const policyValidationCurrent = controls.filter((c) => c.domain === 'compliance' && state.onboardingWork[c.id] === 'done').length
   const policyValidationTotal = controls.filter((c) => c.domain === 'compliance').length || 1
+  const guidedRoutes = ['home', 'tracker', 'controls', 'ask']
+  const guidedLabels = ['Home', 'Live Tracker', 'Controls', 'The Ask']
+
+  const startGuided = () => {
+    update({ guidedMode: true, guidedStep: 0 })
+    nav('/home')
+  }
+
+  const resumeGuided = () => {
+    update({ guidedMode: true })
+    const route = guidedRoutes[state.guidedStep] || 'home'
+    nav(`/${route}`)
+  }
 
   return (
     <>
@@ -167,6 +180,8 @@ export function Home() {
           <p className="hub-sub">{template.label} template · {template.guidance}</p>
           <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' }}>
             <button className="btn btn-primary" onClick={() => nav('/tracker')}>Start with live tracker</button>
+            {!state.guidedMode && <button className="btn" onClick={startGuided}>Start guided onboarding</button>}
+            {state.guidedMode && <button className="btn" onClick={resumeGuided}>Resume guided step: {guidedLabels[state.guidedStep] || 'Home'}</button>}
             <button className="btn" onClick={() => document.getElementById('immediate-actions')?.scrollIntoView({ behavior: 'smooth' })}>Resume where we left off</button>
             <button className="btn" onClick={() => setSetupOpen((v) => !v)}>{setupOpen ? 'Hide setup' : 'Open setup wizard'}</button>
           </div>
@@ -176,6 +191,14 @@ export function Home() {
           <div className="hub-score-label">Overall readiness</div>
           <div className="hub-mini">Last updated: {new Date().toLocaleString()}</div>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 14, background: 'var(--sky)' }}>
+        <div className="card-h">Recommended first-time journey</div>
+        <p style={{ fontSize: 12.5, color: 'var(--slate)' }}>
+          Follow this sequence to avoid confusion: Home -&gt; Live Tracker -&gt; Controls In Place -&gt; The Ask.
+          Guided mode keeps navigation focused and helps teams move from orientation to decisions.
+        </p>
       </div>
 
       {setupOpen && (

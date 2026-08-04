@@ -1,48 +1,72 @@
-# Copilot Briefing
+# Copilot Briefing (Standalone)
 
-Standalone **M365 Copilot — GCC High Deployment Briefing** app (the interactive briefing, a.k.a. the "red glacier" site).
+Standalone M365 Copilot GCC High deployment briefing app.
 
-- **Live URL:** https://red-glacier-04780bd0f.7.azurestaticapps.net
-- **Type:** Vite + React + TypeScript single-page app (HashRouter)
-- **Entry:** `index.html` → `src/main.tsx` → `src/App.tsx`
+- Live example: https://red-glacier-04780bd0f.7.azurestaticapps.net
+- Stack: Vite + React + TypeScript (HashRouter)
+- Entry: `index.html` -> `src/main.tsx` -> `src/App.tsx`
 
-This is a self-contained project. It shares no files with the onboarding hub.
+## Who this is for
 
-## Develop
+Teams that want a deployable customer-facing briefing experience and can host static files anywhere.
+
+## Quick start
 
 ```powershell
 npm install
-npm run dev        # http://localhost:5173
+npm run dev
 ```
 
-## Build
+Build production assets:
 
 ```powershell
-npm run build      # outputs to dist/
-npm run preview    # preview the production build
+npm run build
+npm run preview
 ```
 
-## Deploy
+Output is generated in `dist/`.
 
-Deploys `dist/` to the existing Azure Static Web App `gcchdashswabdito1pz`.
+## Deploy anywhere
+
+This app is static output and can be hosted on:
+- Azure Static Web Apps
+- Azure Storage static website
+- GitHub Pages
+- Cloudflare Pages
+- S3-compatible static hosting
+- Nginx/Apache static hosting
+
+Publish the `dist/` folder.
+
+## Azure deployment (optional script)
+
+The included script deploys to Azure Static Web Apps:
 
 ```powershell
 az login
-./deploy.ps1                 # build + deploy
-./deploy.ps1 -SkipBuild      # deploy the current dist/ without rebuilding
-./deploy.ps1 -ForceBuild     # force a fresh build, then deploy
+./deploy.ps1
+./deploy.ps1 -SkipBuild
+./deploy.ps1 -ForceBuild
 ```
 
-## Structure
+## GCCH content posture
+
+The briefing is GCCH-focused and includes:
+- live source citations for key claims
+- RSS retirement guidance
+- RCD as the recommended successor
+- tracker-first onboarding journey
+
+## Project map
 
 | Area | Path |
 | --- | --- |
 | App shell / routing | `src/App.tsx`, `src/main.tsx` |
 | Section order | `src/lib/sections.ts` |
-| Section → component map | `src/sections/registry.ts` |
-| Section components | `src/sections/*` |
-| Interactive Live Tracker | `src/sections/Dashboard.tsx` (backed by `src/data/dashboard.ts`) |
-| Shared primitives | `src/components/Primitives.tsx` |
-| Content / data | `src/data/*` |
-| State + utils | `src/lib/*` |
+| Section to component mapping | `src/sections/registry.ts` |
+| Section implementations | `src/sections/*` |
+| Live tracker wrapper | `src/sections/Dashboard.tsx` |
+| Source citations registry | `src/data/references.ts` |
+| Data/content | `src/data/*` |
+| Shared state and utilities | `src/lib/*` |
 | Styles | `src/styles/app.css` |
