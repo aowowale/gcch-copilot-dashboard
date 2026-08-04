@@ -8,24 +8,24 @@ export const meta = {
 export const asks = [
   {
     "id": "ask1",
-    "title": "Confirm DLP Visibility for Copilot",
-    "tag": "Enables Path 1",
-    "desc": "Add the Copilot location to a DLP policy in audit mode so interactions are visible. This is about visibility into interaction patterns, not blocking. With it in place, unlicensed Chat can be enabled this week.",
-    "rationale": "Audit-mode DLP gives full visibility into interaction patterns before any enforcement decision. It establishes the monitoring foundation that enforcement can build on later, based on observed behavior."
+    "title": "Approve Baseline Governance Controls",
+    "tag": "Go-Live Foundation",
+    "desc": "Confirm that baseline controls are in place before broad enablement: Conditional Access, Copilot app scoping, DLP location coverage, retention coverage, and audit validation.",
+    "rationale": "This converts Copilot from a feature rollout into a governed operating model. The objective is evidence-backed visibility and control before scale."
   },
   {
     "id": "ask2",
-    "title": "Approve Licensed Copilot Pilot (Path 3)",
-    "tag": "Enables Path 3",
-    "desc": "Approval to run a 20-50 person pilot with licensed Copilot, web grounding OFF, RSS already enabled. No broad rollout. A controlled pilot with IT and compliance staff first.",
-    "rationale": "RSS is enabled with no allowed list — SharePoint is completely locked. The pilot group is the people best equipped to validate behavior. Two to four weeks, then expand on evidence."
+    "title": "Approve Controlled Pilot Scope",
+    "tag": "Pilot Execution",
+    "desc": "Approve a limited pilot cohort (role-based and time-bound), with web grounding OFF by default and explicit test criteria for policy behavior, audit traceability, and support readiness.",
+    "rationale": "A controlled pilot reduces deployment risk, generates tenant-specific evidence, and gives security and operations teams confidence before expansion."
   },
   {
     "id": "ask3",
-    "title": "Commit to Path 4 as Target State",
-    "tag": "Strategic alignment",
-    "desc": "Agree in principle that licensed Copilot with web grounding ON is the direction. Formal approval and risk acceptance comes after pilot data. We need to know the organization is aligned on where we are headed.",
-    "rationale": "You are not approving web grounding today. You are agreeing on direction so we build toward the same goal. The formal decision happens with pilot data in hand."
+    "title": "Approve Expansion Criteria and Decision Gates",
+    "tag": "Scale Readiness",
+    "desc": "Agree on the criteria required for scale: gate thresholds, blocker policy, ownership model, and required sign-offs for any boundary-affecting changes (including web grounding decisions).",
+    "rationale": "This aligns leadership, security, and operations on objective expansion rules so rollout decisions are repeatable, auditable, and not personality-driven."
   }
 ];
 export const fears = [

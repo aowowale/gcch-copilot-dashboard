@@ -156,6 +156,38 @@ If you intend to reuse this for your tenant/customer:
 3. Keep references in `src/data/references.ts` verified and live.
 4. Run local builds for all app surfaces before publishing.
 
+## New Customer Setup Checklist
+
+Use this checklist when adapting the project for a new organization:
+
+1. Branding and context
+- Update title/subtitle in `src/data/content.ts` (`meta`).
+- Confirm terminology (GCCH/GCC/commercial) matches customer cloud.
+
+2. Governance assumptions
+- Review Section 18 asks in `src/data/content.ts` and tailor decision language to the customer's governance model.
+- Validate boundary assumptions (web grounding, RCD/RSS posture, escalation path).
+
+3. Source hygiene
+- Verify every external claim has a live citation.
+- Update `src/data/references.ts` only with confirmed URLs.
+
+4. Onboarding journey
+- Keep first-time flow: Home -> Tracker -> Controls -> Ask.
+- In guided mode, confirm each step is understandable to non-engineering stakeholders.
+
+5. Build and quality gates
+- Run all builds:
+  - `npm run build`
+  - `cd copilot-briefing && npm run build`
+  - `cd copilot-onboarding-hub && npm run build`
+- Verify CI passes in GitHub Actions.
+
+6. Deployment and handoff
+- Deploy preview environment first.
+- Confirm core routes render: `#/home`, `#/tracker`, `#/rss`, `#/ask`.
+- Export/share customer-facing deployment notes and ownership model.
+
 ## Troubleshooting
 
 - If `npm` is not recognized in PowerShell, refresh PATH or open a new shell.

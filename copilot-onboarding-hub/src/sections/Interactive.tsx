@@ -135,9 +135,8 @@ export function Ask() {
         in the meeting below. Export the full decision log at the end.
       </SectionHead>
       <SpeakerNote>
-        Be direct. Ask 1 is easy (audit-mode DLP = visibility, Chat this week). Ask 2 is a controlled pilot, not a
-        broad rollout. Ask 3 is agreement on direction, not a web-grounding switch today. Then: "What questions do
-        you have?"
+        Use this section as a live governance checkpoint. Confirm baseline controls, pilot boundaries, and scale
+        gates in writing. Focus on evidence and ownership, then capture open questions for follow-up.
       </SpeakerNote>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
         <button className="btn btn-primary" onClick={exportDecisions}>Export decision log ▸</button>

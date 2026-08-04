@@ -1,0 +1,15 @@
+# Default owners for all files
+* @aowowale
+
+# Workflows and release automation
+.github/workflows/* @aowowale
+
+# Core app surfaces
+src/** @aowowale
+copilot-briefing/src/** @aowowale
+copilot-onboarding-hub/src/** @aowowale
+
+# Deployment and docs
+*.ps1 @aowowale
+README.md @aowowale
+copilot-briefing/README.md @aowowale
