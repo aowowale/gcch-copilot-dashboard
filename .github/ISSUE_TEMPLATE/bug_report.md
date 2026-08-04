@@ -10,6 +10,8 @@ assignees: aowowale
 
 Describe the issue clearly.
 
+If this appears security-sensitive, do not file it publicly. Follow `SECURITY.md`.
+
 ## Steps To Reproduce
 
 1.
@@ -34,3 +36,5 @@ Screenshots, logs, or console output.
 ## Additional Context
 
 Anything else helpful.
+
+Contributor workflow reference: `CONTRIBUTING.md`

@@ -2,6 +2,12 @@
 
 Describe what changed and why.
 
+## Governance Checklist
+
+- [ ] `CONTRIBUTING.md` reviewed for repo workflow expectations
+- [ ] `SECURITY.md` reviewed (no sensitive details disclosed in PR)
+- [ ] `RELEASING.md` considered if this affects release behavior or versioning
+
 ## Type Of Change
 
 - [ ] Content update

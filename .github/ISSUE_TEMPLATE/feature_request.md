@@ -35,3 +35,7 @@ How does this improve customer onboarding, governance, or deployment readiness?
 ## Notes
 
 Add any constraints or examples.
+
+References:
+- Contribution workflow: `CONTRIBUTING.md`
+- Release/versioning impact: `RELEASING.md`
