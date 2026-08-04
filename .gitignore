@@ -1,0 +1,25 @@
+node_modules/
+dist/
+dist-briefing-host/
+dist-reusable-host/
+.vscode/
+
+# Logs / cache
+*.log
+.vite/
+*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Large binary archives (regenerable source/dist snapshots)
+*.zip
+
+# TS build info
+*.tsbuildinfo
