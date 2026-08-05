@@ -61,6 +61,40 @@ npm install
 npm run build
 ```
 
+## 10-minute first deploy
+
+If you are new to the repo, do this first:
+
+```powershell
+npm install
+cd .\copilot-briefing; npm install; cd ..
+cd .\copilot-onboarding-hub; npm install; cd ..
+npm run validate:all
+```
+
+This gives you the fastest proof that the repository is healthy on your machine:
+
+- root build passes
+- standalone briefing build passes
+- standalone onboarding hub build passes
+- Playwright smoke tests pass
+
+If that succeeds, move to deployment.
+
+## Deployment matrix
+
+| Goal | Use this | Output |
+| --- | --- | --- |
+| Try locally | `npm run dev` | local Vite app |
+| Validate everything locally | `npm run validate:all` | builds + smoke tests |
+| Host anywhere | build + publish `dist/` | static site |
+| Deploy briefing only | `copilot-briefing/deploy.ps1` | standalone briefing SWA |
+| Deploy onboarding hub only | `copilot-onboarding-hub/deploy.ps1` | standalone onboarding SWA |
+| Deploy root combined app to SWA | `deploy-azure-swa.ps1` | root combined host |
+| Deploy root combined app to Azure Storage | `deploy-azure-static.ps1` | static website |
+
+For a full step-by-step version, see `DEPLOYMENT.md`.
+
 ## Public distribution model (recommended)
 
 For customers who want to host anywhere:
@@ -116,6 +150,8 @@ az login --tenant <tenant-id>
 az account set --subscription <subscription-id>
 ```
 
+Copyable placeholder values are provided in `deploy.env.example`.
+
 ## CI and dependency hygiene
 
 GitHub automation is included:
@@ -159,6 +195,8 @@ Required repository secrets:
 Optional repository variable:
 
 - `AZURE_CLOUD` (default: `AzureCloud`, set `AzureUSGovernment` for GCC High tenant automation)
+
+If you are not enabling OIDC yet, ignore this workflow and use the local deployment scripts described in `DEPLOYMENT.md`.
 
 ## Dependency advisory note
 
@@ -228,6 +266,8 @@ If you intend to reuse this for your tenant/customer:
 4. Run local builds for all app surfaces before publishing.
 
 For full contribution workflow and quality expectations, see `CONTRIBUTING.md`.
+
+For first-run deployment and validation steps, see `DEPLOYMENT.md`.
 
 ## New Customer Setup Checklist
 

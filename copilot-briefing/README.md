@@ -17,6 +17,8 @@ npm install
 npm run dev
 ```
 
+If you are starting from the repo root and want the quickest confidence check first, run `npm run validate:all` from the root project.
+
 Build production assets:
 
 ```powershell
@@ -48,6 +50,8 @@ az login
 ./deploy.ps1 -SkipBuild
 ./deploy.ps1 -ForceBuild
 ```
+
+For a full decision tree and exact parameter examples, see `../DEPLOYMENT.md` and `../deploy.env.example`.
 
 ## GCCH content posture
 

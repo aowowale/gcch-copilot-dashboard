@@ -22,6 +22,8 @@ npm run build      # outputs to dist/
 npm run preview    # preview the production build
 ```
 
+If you want a repo-wide confidence check before choosing a deploy path, run `npm run validate:all` from the repo root.
+
 ## Deploy
 
 Deploys `dist/` to the existing Azure Static Web App `gcchdashswareusable1pz`.
@@ -32,6 +34,8 @@ az login
 ./deploy.ps1 -SkipBuild      # deploy the current dist/ without rebuilding
 ./deploy.ps1 -ForceBuild     # force a fresh build, then deploy
 ```
+
+For a full deployment decision tree and copyable parameter placeholders, see `../DEPLOYMENT.md` and `../deploy.env.example`.
 
 ## Governance and reuse docs
 
