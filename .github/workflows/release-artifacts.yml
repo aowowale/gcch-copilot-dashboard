@@ -35,10 +35,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@49933ea5288caeca8642d1e84afbd3f7d6820020
+        uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@ea165f8d65b6e75b540449e92b4886f43607fa02
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
@@ -51,7 +51,7 @@ jobs:
         run: npm run build
 
       - name: Upload dist artifact
-        uses: actions/upload-artifact@8216e11d8cd9b42fe925c852af8e76311ff067ac
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.project }}/dist
