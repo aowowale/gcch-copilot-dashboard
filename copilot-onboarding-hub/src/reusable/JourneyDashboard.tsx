@@ -25,9 +25,16 @@ type V2Persisted = {
 }
 
 type AskItem = { id: string; title: string; rationale: string; decision: 'Pending' | 'Approved' | 'Deferred' | 'Questioned' }
+type RemediationFinding = {
+  workstream?: 'SharePoint & SAM' | 'Microsoft Teams'
+  severity?: 'Low' | 'Medium' | 'High' | 'Critical'
+  status?: 'Open' | 'In Progress' | 'Resolved'
+  stage?: 'Not assessed' | 'Findings identified' | 'Remediation underway' | 'Validation needed' | 'Ready'
+  evidence?: string
+}
 
-function readinessLabel(pct: number, blockers: number, overdue: number) {
-  if (blockers > 0) return { label: 'Blocked', className: 'badge-red' }
+function readinessLabel(pct: number, blockers: number, overdue: number, criticalFindings: number) {
+  if (blockers > 0 || criticalFindings > 0) return { label: 'Blocked', className: 'badge-red' }
   if (pct >= 85 && overdue === 0) return { label: 'Ready', className: 'badge-done' }
   if (pct > 0) return { label: 'Needs attention', className: 'badge-progress' }
   return { label: 'Not assessed', className: 'badge-pending' }
@@ -107,9 +114,22 @@ export function JourneyDashboard() {
   const templates = getStarterTemplates()
   const audit = readWorkspaceValue<AuditEvent[]>(LEMON_KEYS.audit, []).slice(0, 8)
   const asks = readWorkspaceValue<AskItem[]>(LEMON_KEYS.asks, []).filter((ask) => ask.decision === 'Pending' || ask.decision === 'Questioned')
-  const readiness = readinessLabel(metrics.pct, metrics.openBlockers, metrics.overdue)
+  const remediation = useMemo(() => {
+    const findings = readWorkspaceValue<RemediationFinding[]>(LEMON_KEYS.sam, [])
+    const workstreams = ['SharePoint & SAM', 'Microsoft Teams'] as const
+    const isReady = (finding: RemediationFinding) =>
+      (finding.stage === 'Ready' || (!finding.stage && finding.status === 'Resolved')) && Boolean(finding.evidence?.trim())
+    const workstreamsReady = workstreams.filter((workstream) => {
+      const items = findings.filter((finding) => (finding.workstream || 'SharePoint & SAM') === workstream)
+      return items.length > 0 && items.every(isReady)
+    }).length
+    const criticalOpen = findings.filter((finding) => finding.severity === 'Critical' && !isReady(finding)).length
+    const validationNeeded = findings.filter((finding) => finding.stage === 'Validation needed' || (finding.stage === 'Ready' && !finding.evidence?.trim())).length
+    return { totalFindings: findings.length, workstreamsReady, criticalOpen, validationNeeded }
+  }, [])
+  const readiness = readinessLabel(metrics.pct, metrics.openBlockers, metrics.overdue, remediation.criticalOpen)
   const stage = journeyStage(metrics.pct)
-  const launchConfidence = metrics.openBlockers > 0 || metrics.overdue > 2
+  const launchConfidence = metrics.openBlockers > 0 || metrics.overdue > 2 || remediation.criticalOpen > 0
     ? 'At risk'
     : metrics.pct >= 70
       ? 'On track'
@@ -127,6 +147,7 @@ export function JourneyDashboard() {
   }
 
   const onImportPack = (e: ChangeEvent<HTMLInputElement>) => {
+    if (getRoleMode() !== 'admin') return
     const file = e.target.files?.[0]
     if (!file) return
     const r = new FileReader()
@@ -187,8 +208,18 @@ export function JourneyDashboard() {
             </div>
             <div className="card">
               <div className="ci-l">Tenant-grounded readiness</div>
-              <div className="card-h" style={{ marginTop: 8 }}>{metrics.controlsPct}% validated</div>
-              <p>{metrics.controlsPct >= 85 ? 'Core protections are largely validated.' : 'Core protections still require completion and evidence.'}</p>
+              <div className="card-h" style={{ marginTop: 8 }}>
+                {remediation.totalFindings ? `${remediation.workstreamsReady} of 2 workstreams ready` : 'Not assessed'}
+              </div>
+              <p>
+                {remediation.criticalOpen
+                  ? `${remediation.criticalOpen} critical finding(s) must be resolved or accepted by an accountable leader.`
+                  : remediation.validationNeeded
+                    ? `${remediation.validationNeeded} finding(s) still need validation evidence.`
+                    : remediation.totalFindings
+                      ? 'Readiness reflects the current SharePoint and Teams remediation findings.'
+                      : 'Assess SharePoint and Teams before approving tenant-grounded Copilot.'}
+              </p>
             </div>
             <div className="card">
               <div className="ci-l">Decisions needed</div>
@@ -291,7 +322,7 @@ export function JourneyDashboard() {
           <div className="card-h">Workspace controls</div>
           <div className="ci-block" style={{ marginTop: 8 }}>
             <div className="ci-l">Role mode</div>
-            <select className="ci-owner-input" value={roleMode} onChange={(e) => { setRoleMode(e.target.value as RoleMode); window.location.reload() }}>
+            <select className="ci-owner-input" aria-label="Role mode" value={roleMode} onChange={(e) => { setRoleMode(e.target.value as RoleMode); window.location.reload() }}>
               <option value="viewer">Viewer</option>
               <option value="editor">Editor</option>
               <option value="admin">Admin</option>
@@ -312,9 +343,9 @@ export function JourneyDashboard() {
             <div className="ci-l">Workspace pack</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button className="btn" onClick={exportPack}>Export workspace</button>
-              <label className="btn" style={{ margin: 0 }}>
+              <label className="btn" style={{ margin: 0, opacity: roleMode === 'admin' ? 1 : 0.5, pointerEvents: roleMode === 'admin' ? 'auto' : 'none' }} aria-disabled={roleMode !== 'admin'}>
                 Import workspace
-                <input type="file" accept="application/json" onChange={onImportPack} style={{ display: 'none' }} />
+                <input type="file" accept="application/json" onChange={onImportPack} style={{ display: 'none' }} disabled={roleMode !== 'admin'} />
               </label>
             </div>
           </div>

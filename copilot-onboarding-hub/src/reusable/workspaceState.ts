@@ -78,6 +78,7 @@ export function useWorkspaceState<T>(key: string, fallback: T, auditArea: string
 
 export function exportWorkspacePack(): WorkspacePack {
   const keys = [
+    LEMON_KEYS.audit,
     LEMON_KEYS.rss,
     LEMON_KEYS.tracker,
     LEMON_KEYS.sam,

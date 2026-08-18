@@ -214,7 +214,12 @@ export function ReusableSam() {
     return { workstream, total: items.length, ready, status }
   }), [findings])
 
-  const edit = (id: string, patch: Partial<SamFinding>) => setFindings((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)))
+  const edit = (id: string, patch: Partial<SamFinding>) => setFindings((prev) => prev.map((finding) => {
+    if (finding.id !== id) return finding
+    const next = { ...finding, ...patch }
+    if (next.stage === 'Ready' && !next.evidence?.trim()) next.stage = 'Validation needed'
+    return next
+  }))
   const add = (workstream: Workstream) => {
     if (!canEdit) return
     setFindings((prev) => [{

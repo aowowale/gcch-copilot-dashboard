@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { readFile } from 'node:fs/promises'
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/#/journey')
@@ -38,6 +39,37 @@ test('executive view turns recorded blockers and decisions into plain-language a
   await expect(page.getByText('The team needs authority to begin the controlled pilot.')).toBeVisible()
 })
 
+test('executive tenant readiness reflects remediation findings and validation evidence', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('lemon_sam_findings', JSON.stringify([
+    {
+      id: 'sam-ready',
+      title: 'SharePoint sharing review',
+      workstream: 'SharePoint & SAM',
+      severity: 'High',
+      stage: 'Ready',
+      evidence: 'Evidence/sharepoint-review.csv',
+      owner: 'SharePoint Admin',
+      notes: '',
+    },
+    {
+      id: 'teams-critical',
+      title: 'Ownerless teams',
+      workstream: 'Microsoft Teams',
+      severity: 'Critical',
+      stage: 'Remediation underway',
+      evidence: '',
+      owner: 'Teams Admin',
+      notes: '',
+    },
+  ])))
+  await page.reload()
+
+  await expect(page.getByText('Blocked', { exact: true })).toBeVisible()
+  await expect(page.getByText('1 of 2 workstreams ready')).toBeVisible()
+  await expect(page.getByText('1 critical finding(s) must be resolved or accepted by an accountable leader.')).toBeVisible()
+  await expect(page.getByText('At risk', { exact: true })).toBeVisible()
+})
+
 test('Teams remediation work remains trackable through validation', async ({ page }) => {
   await page.goto('/#/sam')
   await expect(page.getByRole('heading', { name: 'Get Copilot Ready' })).toBeVisible()
@@ -52,6 +84,10 @@ test('Teams remediation work remains trackable through validation', async ({ pag
   await expect(finding.getByText('Add validation evidence before marking this finding Ready.')).toBeVisible()
   await finding.getByPlaceholder('Validation evidence link or reference').fill('Evidence/teams-guest-review.csv')
   await expect(stage.locator('option', { hasText: 'Ready' })).toBeEnabled()
+  await stage.selectOption('Ready')
+  await finding.getByPlaceholder('Validation evidence link or reference').fill('')
+  await expect(stage).toHaveValue('Validation needed')
+  await finding.getByPlaceholder('Validation evidence link or reference').fill('Evidence/teams-guest-review.csv')
   await stage.selectOption('Ready')
 
   await page.reload()
@@ -69,6 +105,10 @@ test('viewer mode protects readiness data from editing', async ({ page }) => {
   await expect(page.getByRole('button', { name: '+ Add SharePoint finding' })).toBeDisabled()
   await expect(page.locator('.readiness-edit-grid input').first()).toBeDisabled()
   await expect(page.locator('.readiness-edit-grid select').first()).toBeDisabled()
+
+  await page.goto('/#/journey')
+  await page.getByRole('button', { name: 'Delivery team view' }).click()
+  await expect(page.locator('input[type="file"]')).toBeDisabled()
 })
 
 test('malformed saved data falls back to a usable workspace', async ({ page }) => {
@@ -98,10 +138,14 @@ test('workspace export and import round-trips readiness data', async ({ page }) 
   const download = await downloadPromise
   const downloadPath = await download.path()
   expect(downloadPath).not.toBeNull()
+  const exported = JSON.parse(await readFile(downloadPath!, 'utf8')) as { data: Record<string, unknown> }
+  expect(exported.data.lemon_audit_trail).toBeDefined()
 
   await page.goto('/#/sam')
   await page.locator('.readiness-edit-grid-primary input').first().fill('Changed after export')
   await page.goto('/#/journey')
+  await page.evaluate(() => localStorage.setItem('lemon_role_mode', 'admin'))
+  await page.reload()
   await page.getByRole('button', { name: 'Delivery team view' }).click()
   await page.locator('input[type="file"]').setInputFiles(downloadPath!)
   await page.waitForLoadState('domcontentloaded')
@@ -133,11 +177,16 @@ test('dashboard and readiness center avoid overflow at tablet and desktop widths
   }
 })
 
-test('print mode removes application chrome and keeps readiness content visible', async ({ page }) => {
-  await page.goto('/#/sam')
+test('print mode removes application chrome and keeps executive and readiness content visible', async ({ page }) => {
   await page.emulateMedia({ media: 'print' })
 
-  await expect(page.locator('.sidebar')).toBeHidden()
-  await expect(page.locator('.topbar')).toBeHidden()
-  await expect(page.getByRole('heading', { name: 'Get Copilot Ready' })).toBeVisible()
+  for (const view of [
+    { route: '/#/journey', heading: 'Onboarding Dashboard' },
+    { route: '/#/sam', heading: 'Get Copilot Ready' },
+  ]) {
+    await page.goto(view.route)
+    await expect(page.locator('.sidebar')).toBeHidden()
+    await expect(page.locator('.topbar')).toBeHidden()
+    await expect(page.getByRole('heading', { name: view.heading })).toBeVisible()
+  }
 })
