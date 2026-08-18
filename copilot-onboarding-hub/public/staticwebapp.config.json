@@ -1,4 +1,12 @@
 {
+  "routes": [
+    {
+      "route": "/gcch-dashboard-tracker.html",
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'self'; form-action 'self'; upgrade-insecure-requests"
+      }
+    }
+  ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": [
@@ -11,7 +19,8 @@
       "/*.gif",
       "/*.svg",
       "/*.ico",
-      "/*.json"
+      "/*.json",
+      "/gcch-dashboard-tracker.html"
     ]
   },
   "responseOverrides": {

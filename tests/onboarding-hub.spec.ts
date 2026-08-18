@@ -1,6 +1,15 @@
 import { expect, test } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 
+test('hub deployment CSP permits the self-contained tracker bundle', async () => {
+  const config = JSON.parse(await readFile('copilot-onboarding-hub/public/staticwebapp.config.json', 'utf8'))
+  const trackerRoute = config.routes?.find((route: { route: string }) => route.route === '/gcch-dashboard-tracker.html')
+  const trackerCsp = trackerRoute?.headers?.['Content-Security-Policy']
+
+  expect(trackerCsp).toContain("script-src 'self' 'unsafe-inline'")
+  expect(config.navigationFallback.exclude).toContain('/gcch-dashboard-tracker.html')
+})
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/#/journey')
   await page.evaluate(() => localStorage.clear())
