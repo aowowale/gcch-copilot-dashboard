@@ -22,7 +22,7 @@ export const REUSABLE_SECTIONS: ReusableSectionDef[] = [
   { id: 'tracker', num: '11', name: 'Live Tracker', phase: 'operate' },
   { id: 'actions', num: '12', name: 'Open Actions', phase: 'operate' },
   { id: 'trace', num: '13', name: 'Operational Traceability', phase: 'operate' },
-  { id: 'sam', num: '14', name: 'SAM Findings & Plan', phase: 'operate' },
+  { id: 'sam', num: '14', name: 'Get Copilot Ready', phase: 'operate' },
   { id: 'lessons', num: '15', name: 'Lessons Learned', phase: 'operate' },
   { id: 'ask', num: '16', name: 'Executive Ask', phase: 'operate' },
   { id: 'zql', num: '17', name: 'ZQL Explained', phase: 'reference' },

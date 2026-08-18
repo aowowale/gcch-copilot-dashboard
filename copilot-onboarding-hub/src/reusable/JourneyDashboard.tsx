@@ -1,4 +1,4 @@
-import { ChangeEvent, useMemo } from 'react'
+import { ChangeEvent, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { SectionHead } from '../components/Primitives'
 import { getV2Template, type V2Status } from '../data/onboardingV2'
@@ -24,6 +24,29 @@ type V2Persisted = {
   blockers?: Array<{ status: 'Open' | 'Resolved' }>
 }
 
+type AskItem = { id: string; title: string; rationale: string; decision: 'Pending' | 'Approved' | 'Deferred' | 'Questioned' }
+type RemediationFinding = {
+  workstream?: 'SharePoint & SAM' | 'Microsoft Teams'
+  severity?: 'Low' | 'Medium' | 'High' | 'Critical'
+  status?: 'Open' | 'In Progress' | 'Resolved'
+  stage?: 'Not assessed' | 'Findings identified' | 'Remediation underway' | 'Validation needed' | 'Ready'
+  evidence?: string
+}
+
+function readinessLabel(pct: number, blockers: number, overdue: number, criticalFindings: number) {
+  if (blockers > 0 || criticalFindings > 0) return { label: 'Blocked', className: 'badge-red' }
+  if (pct >= 85 && overdue === 0) return { label: 'Ready', className: 'badge-done' }
+  if (pct > 0) return { label: 'Needs attention', className: 'badge-progress' }
+  return { label: 'Not assessed', className: 'badge-pending' }
+}
+
+function journeyStage(pct: number) {
+  if (pct >= 90) return 'Ready to scale'
+  if (pct >= 65) return 'Pilot validation'
+  if (pct >= 30) return 'Preparing the tenant'
+  return 'Getting organized'
+}
+
 function loadPersisted(): V2Persisted {
   try {
     const raw = localStorage.getItem(KEY)
@@ -36,6 +59,7 @@ function loadPersisted(): V2Persisted {
 
 export function JourneyDashboard() {
   const nav = useNavigate()
+  const [view, setView] = useState<'executive' | 'team'>('executive')
   const persisted = loadPersisted()
   const cloud = persisted.profile?.cloud || 'gcch'
   const path = persisted.profile?.path || 'pilot'
@@ -89,6 +113,27 @@ export function JourneyDashboard() {
   const roleMode = getRoleMode()
   const templates = getStarterTemplates()
   const audit = readWorkspaceValue<AuditEvent[]>(LEMON_KEYS.audit, []).slice(0, 8)
+  const asks = readWorkspaceValue<AskItem[]>(LEMON_KEYS.asks, []).filter((ask) => ask.decision === 'Pending' || ask.decision === 'Questioned')
+  const remediation = useMemo(() => {
+    const findings = readWorkspaceValue<RemediationFinding[]>(LEMON_KEYS.sam, [])
+    const workstreams = ['SharePoint & SAM', 'Microsoft Teams'] as const
+    const isReady = (finding: RemediationFinding) =>
+      (finding.stage === 'Ready' || (!finding.stage && finding.status === 'Resolved')) && Boolean(finding.evidence?.trim())
+    const workstreamsReady = workstreams.filter((workstream) => {
+      const items = findings.filter((finding) => (finding.workstream || 'SharePoint & SAM') === workstream)
+      return items.length > 0 && items.every(isReady)
+    }).length
+    const criticalOpen = findings.filter((finding) => finding.severity === 'Critical' && !isReady(finding)).length
+    const validationNeeded = findings.filter((finding) => finding.stage === 'Validation needed' || (finding.stage === 'Ready' && !finding.evidence?.trim())).length
+    return { totalFindings: findings.length, workstreamsReady, criticalOpen, validationNeeded }
+  }, [])
+  const readiness = readinessLabel(metrics.pct, metrics.openBlockers, metrics.overdue, remediation.criticalOpen)
+  const stage = journeyStage(metrics.pct)
+  const launchConfidence = metrics.openBlockers > 0 || metrics.overdue > 2 || remediation.criticalOpen > 0
+    ? 'At risk'
+    : metrics.pct >= 70
+      ? 'On track'
+      : 'Still being established'
 
   const exportPack = () => {
     const pack = exportWorkspacePack()
@@ -102,6 +147,7 @@ export function JourneyDashboard() {
   }
 
   const onImportPack = (e: ChangeEvent<HTMLInputElement>) => {
+    if (getRoleMode() !== 'admin') return
     const file = e.target.files?.[0]
     if (!file) return
     const r = new FileReader()
@@ -125,10 +171,105 @@ export function JourneyDashboard() {
   return (
     <>
       <SectionHead num="00" title="Onboarding Dashboard">
-        Executive snapshot of readiness, blockers, milestones, and next best actions.
+        A clear view of where the Copilot journey stands and what must happen next.
       </SectionHead>
 
-      <div className="grid grid-4" style={{ marginTop: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', flexWrap: 'wrap', marginTop: 10 }}>
+        <div style={{ display: 'flex', gap: 6 }} role="group" aria-label="Dashboard view">
+          <button className={`btn${view === 'executive' ? ' btn-primary' : ''}`} onClick={() => setView('executive')} aria-pressed={view === 'executive'}>
+            Executive view
+          </button>
+          <button className={`btn${view === 'team' ? ' btn-primary' : ''}`} onClick={() => setView('team')} aria-pressed={view === 'team'}>
+            Delivery team view
+          </button>
+        </div>
+        <span className={`badge ${readiness.className}`}>{readiness.label}</span>
+      </div>
+
+      {view === 'executive' && (
+        <>
+          <div className="card" style={{ marginTop: 12, borderLeft: `5px solid ${readiness.label === 'Ready' ? 'var(--green)' : readiness.label === 'Blocked' ? 'var(--red)' : 'var(--amber)'}` }}>
+            <div className="ci-l">Where we are</div>
+            <div className="counter-big" style={{ fontSize: 28, marginTop: 4 }}>{stage}</div>
+            <p style={{ marginTop: 8 }}>
+              {readiness.label === 'Ready'
+                ? 'The required preparation is substantially complete. The team can focus on the next approval and rollout milestone.'
+                : readiness.label === 'Blocked'
+                  ? 'The journey cannot advance until the open blockers are resolved or an accountable leader accepts the risk.'
+                  : 'The team is making progress, but required preparation and validation work remains before broader rollout.'}
+            </p>
+          </div>
+
+          <div className="grid grid-3" style={{ marginTop: 12 }}>
+            <div className="card">
+              <div className="ci-l">Launch confidence</div>
+              <div className="card-h" style={{ marginTop: 8 }}>{launchConfidence}</div>
+              <p>{metrics.overdue ? `${metrics.overdue} overdue item(s) could affect timing.` : 'No overdue work is currently affecting timing.'}</p>
+            </div>
+            <div className="card">
+              <div className="ci-l">Tenant-grounded readiness</div>
+              <div className="card-h" style={{ marginTop: 8 }}>
+                {remediation.totalFindings ? `${remediation.workstreamsReady} of 2 workstreams ready` : 'Not assessed'}
+              </div>
+              <p>
+                {remediation.criticalOpen
+                  ? `${remediation.criticalOpen} critical finding(s) must be resolved or accepted by an accountable leader.`
+                  : remediation.validationNeeded
+                    ? `${remediation.validationNeeded} finding(s) still need validation evidence.`
+                    : remediation.totalFindings
+                      ? 'Readiness reflects the current SharePoint and Teams remediation findings.'
+                      : 'Assess SharePoint and Teams before approving tenant-grounded Copilot.'}
+              </p>
+            </div>
+            <div className="card">
+              <div className="ci-l">Decisions needed</div>
+              <div className="card-h" style={{ marginTop: 8 }}>{asks.length}</div>
+              <p>{asks.length ? 'Leadership decisions are waiting and may affect progress.' : 'No leadership decisions are currently waiting.'}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-2" style={{ marginTop: 12 }}>
+            <div className="card">
+              <div className="card-h">What could delay us</div>
+              <div className="ci-block" style={{ marginTop: 8 }}>
+                <strong>{metrics.openBlockers ? `${metrics.openBlockers} open blocker(s)` : 'No open blockers'}</strong>
+                <p style={{ marginTop: 6 }}>{metrics.openBlockers ? 'Each blocker needs an owner, resolution date, and clear decision path.' : 'The team has not recorded any issue that prevents progress.'}</p>
+              </div>
+              <div className="ci-block" style={{ marginTop: 8 }}>
+                <strong>{metrics.overdue ? `${metrics.overdue} overdue commitment(s)` : 'Commitments are on schedule'}</strong>
+                <p style={{ marginTop: 6 }}>{metrics.overdue ? 'Overdue work should be reassigned, rescheduled, or escalated.' : 'Current due dates are not creating a visible delay.'}</p>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="card-h">What must happen next</div>
+              {recommendations.map((item, index) => (
+                <div key={item.id} className="ci-block" style={{ marginTop: 8 }}>
+                  <div className="ci-l">{index === 0 ? 'Next milestone action' : `Then ${index + 1}`}</div>
+                  <strong style={{ fontSize: 13 }}>{item.title}</strong>
+                </div>
+              ))}
+              {!recommendations.length && <p style={{ marginTop: 8 }}>Preparation work is complete. Review the next approval gate.</p>}
+              <button className="btn btn-primary" style={{ marginTop: 10 }} onClick={() => nav('/sam')}>Review readiness work</button>
+            </div>
+          </div>
+
+          {asks.length > 0 && (
+            <div className="card" style={{ marginTop: 12 }}>
+              <div className="card-h">Decisions requiring attention</div>
+              {asks.slice(0, 3).map((ask) => (
+                <div key={ask.id} className="ci-block" style={{ marginTop: 8 }}>
+                  <strong>{ask.title}</strong>
+                  <p style={{ marginTop: 6 }}>{ask.rationale || 'Review the recommendation and record a decision.'}</p>
+                </div>
+              ))}
+              <button className="btn" style={{ marginTop: 10 }} onClick={() => nav('/ask')}>Open decisions</button>
+            </div>
+          )}
+        </>
+      )}
+
+      {view === 'team' && <><div className="grid grid-4" style={{ marginTop: 10 }}>
         <div className="card"><div className="ci-l">Overall readiness</div><div className="counter-big" style={{ fontSize: 30 }}>{metrics.pct}%</div></div>
         <div className="card"><div className="ci-l">Controls complete</div><div className="counter-big" style={{ fontSize: 30 }}>{metrics.controlsPct}%</div></div>
         <div className="card"><div className="ci-l">Tasks complete</div><div className="counter-big" style={{ fontSize: 30 }}>{metrics.tasksPct}%</div></div>
@@ -181,7 +322,7 @@ export function JourneyDashboard() {
           <div className="card-h">Workspace controls</div>
           <div className="ci-block" style={{ marginTop: 8 }}>
             <div className="ci-l">Role mode</div>
-            <select className="ci-owner-input" value={roleMode} onChange={(e) => { setRoleMode(e.target.value as RoleMode); window.location.reload() }}>
+            <select className="ci-owner-input" aria-label="Role mode" value={roleMode} onChange={(e) => { setRoleMode(e.target.value as RoleMode); window.location.reload() }}>
               <option value="viewer">Viewer</option>
               <option value="editor">Editor</option>
               <option value="admin">Admin</option>
@@ -202,9 +343,9 @@ export function JourneyDashboard() {
             <div className="ci-l">Workspace pack</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button className="btn" onClick={exportPack}>Export workspace</button>
-              <label className="btn" style={{ margin: 0 }}>
+              <label className="btn" style={{ margin: 0, opacity: roleMode === 'admin' ? 1 : 0.5, pointerEvents: roleMode === 'admin' ? 'auto' : 'none' }} aria-disabled={roleMode !== 'admin'}>
                 Import workspace
-                <input type="file" accept="application/json" onChange={onImportPack} style={{ display: 'none' }} />
+                <input type="file" accept="application/json" onChange={onImportPack} style={{ display: 'none' }} disabled={roleMode !== 'admin'} />
               </label>
             </div>
           </div>
@@ -223,7 +364,7 @@ export function JourneyDashboard() {
             </div>
           ))}
         </div>
-      </div>
+      </div></>}
     </>
   )
 }
