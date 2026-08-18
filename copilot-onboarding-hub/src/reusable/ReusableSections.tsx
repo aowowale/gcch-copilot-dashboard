@@ -135,43 +135,188 @@ export function ReusableTracker() {
 }
 
 export function ReusableSam() {
-  type SamFinding = { id: string; title: string; severity: Severity; status: ItemStatus; owner: string; notes: string }
+  type Workstream = 'SharePoint & SAM' | 'Microsoft Teams'
+  type ReadinessStage = 'Not assessed' | 'Findings identified' | 'Remediation underway' | 'Validation needed' | 'Ready'
+  type SamFinding = {
+    id: string
+    title: string
+    workstream?: Workstream
+    category?: string
+    severity: Severity
+    status?: ItemStatus
+    stage?: ReadinessStage
+    owner: string
+    affectedScope?: number
+    targetScope?: number
+    due?: string
+    impact?: string
+    evidence?: string
+    notes: string
+  }
   const [findings, setFindings] = useWorkspaceState<SamFinding[]>(LEMON_KEYS.sam, [
-    { id: 'sam-1', title: 'High-risk sharing pattern identified', severity: 'High', status: 'Open', owner: 'Security', notes: '' },
-    { id: 'sam-2', title: 'Site ownership metadata incomplete', severity: 'Medium', status: 'In Progress', owner: 'SharePoint Admin', notes: '' },
+    {
+      id: 'sam-1',
+      title: 'Sites with broad or unclear access',
+      workstream: 'SharePoint & SAM',
+      category: 'Oversharing',
+      severity: 'High',
+      stage: 'Findings identified',
+      owner: 'SharePoint Admin',
+      affectedScope: 249,
+      targetScope: 0,
+      impact: 'Copilot may surface content to people who already have access but should no longer need it.',
+      evidence: '',
+      notes: '',
+    },
+    {
+      id: 'teams-1',
+      title: 'Inactive or ownerless teams need review',
+      workstream: 'Microsoft Teams',
+      category: 'Lifecycle and ownership',
+      severity: 'High',
+      stage: 'Not assessed',
+      owner: 'Teams Admin',
+      affectedScope: 0,
+      targetScope: 0,
+      impact: 'Stale collaboration spaces can retain access and content without an accountable business owner.',
+      evidence: '',
+      notes: '',
+    },
   ], 'sam')
   const canEdit = getRoleMode() !== 'viewer'
 
+  const workstreams: Workstream[] = ['SharePoint & SAM', 'Microsoft Teams']
+  const stages: ReadinessStage[] = ['Not assessed', 'Findings identified', 'Remediation underway', 'Validation needed', 'Ready']
+  const categories: Record<Workstream, string[]> = {
+    'SharePoint & SAM': ['Oversharing', 'Sensitivity labels', 'Inactive sites', 'Legacy protection', 'Pilot search scope'],
+    'Microsoft Teams': ['Lifecycle and ownership', 'Guest and external access', 'Public teams', 'Stale channels', 'Sensitivity labels', 'Connected SharePoint content'],
+  }
+
+  const normalizedStage = (finding: SamFinding): ReadinessStage => {
+    if (finding.stage === 'Ready' && !finding.evidence?.trim()) return 'Validation needed'
+    if (finding.stage) return finding.stage
+    if (finding.status === 'Resolved') return 'Ready'
+    if (finding.status === 'In Progress') return 'Remediation underway'
+    return 'Findings identified'
+  }
+
+  const rollups = useMemo(() => workstreams.map((workstream) => {
+    const items = findings.filter((finding) => (finding.workstream || 'SharePoint & SAM') === workstream)
+    const ready = items.filter((finding) => normalizedStage(finding) === 'Ready').length
+    const blocked = items.filter((finding) => finding.severity === 'Critical' && normalizedStage(finding) !== 'Ready').length
+    const status = items.length === 0
+      ? 'Not assessed'
+      : ready === items.length
+        ? 'Ready'
+        : blocked > 0
+          ? 'Blocked'
+          : 'Needs attention'
+    return { workstream, total: items.length, ready, status }
+  }), [findings])
+
   const edit = (id: string, patch: Partial<SamFinding>) => setFindings((prev) => prev.map((f) => (f.id === id ? { ...f, ...patch } : f)))
-  const add = () => {
+  const add = (workstream: Workstream) => {
     if (!canEdit) return
-    setFindings((prev) => [{ id: `sam-${Date.now()}`, title: 'New finding', severity: 'Medium', status: 'Open', owner: '', notes: '' }, ...prev])
+    setFindings((prev) => [{
+      id: `ready-${Date.now()}`,
+      title: 'New readiness finding',
+      workstream,
+      category: categories[workstream][0],
+      severity: 'Medium',
+      stage: 'Findings identified',
+      owner: '',
+      affectedScope: 0,
+      targetScope: 0,
+      due: '',
+      impact: '',
+      evidence: '',
+      notes: '',
+    }, ...prev])
   }
   const remove = (id: string) => setFindings((prev) => prev.filter((f) => f.id !== id))
 
   return (
     <>
-      <SectionHead num="14" title="SAM Findings & Plan">
-        Reusable findings workspace. Replace with your tenant-specific discovery and remediation plan.
+      <SectionHead num="14" title="Get Copilot Ready">
+        Find, fix, and validate the content and collaboration issues that matter most for tenant-grounded Copilot.
       </SectionHead>
+
       <div className="card" style={{ marginBottom: 12, background: 'var(--sky)' }}>
-        <p style={{ fontSize: 13 }}>This page is intentionally editable so each customer can own their own SAM baseline, owners, and closure notes.</p>
+        <div className="card-h">How readiness work moves</div>
+        <p style={{ fontSize: 13, marginTop: 6 }}>Assess the tenant, turn findings into owned cleanup work, validate the result, and retain evidence. “Ready” means the target was met and checked, not simply that work was attempted.</p>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
+          {stages.map((stage, index) => <span className="badge badge-pending" key={stage}>{index + 1}. {stage}</span>)}
+        </div>
       </div>
-      <button className="btn" onClick={add} disabled={!canEdit}>+ Add finding</button>
+
+      <div className="grid grid-2" style={{ marginBottom: 12 }}>
+        {rollups.map((rollup) => (
+          <div className="card" key={rollup.workstream}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
+              <div className="card-h">{rollup.workstream}</div>
+              <span className={`badge ${rollup.status === 'Ready' ? 'badge-done' : rollup.status === 'Blocked' ? 'badge-red' : rollup.status === 'Not assessed' ? 'badge-pending' : 'badge-progress'}`}>{rollup.status}</span>
+            </div>
+            <p style={{ marginTop: 8 }}>{rollup.ready} of {rollup.total} finding(s) validated and ready.</p>
+            <button className="btn" style={{ marginTop: 10 }} onClick={() => add(rollup.workstream)} disabled={!canEdit}>+ Add {rollup.workstream === 'Microsoft Teams' ? 'Teams' : 'SharePoint'} finding</button>
+          </div>
+        ))}
+      </div>
+
       {findings.map((f) => (
         <div className="card" key={f.id} style={{ marginTop: 10 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr auto', gap: 8 }}>
+          <div className="readiness-edit-grid readiness-edit-grid-primary">
             <input className="ci-owner-input" value={f.title} onChange={(e) => edit(f.id, { title: e.target.value })} disabled={!canEdit} />
+            <select className="ci-owner-input" value={f.workstream || 'SharePoint & SAM'} onChange={(e) => {
+              const workstream = e.target.value as Workstream
+              edit(f.id, { workstream, category: categories[workstream][0] })
+            }} disabled={!canEdit}>
+              {workstreams.map((workstream) => <option key={workstream}>{workstream}</option>)}
+            </select>
             <select className="ci-owner-input" value={f.severity} onChange={(e) => edit(f.id, { severity: e.target.value as Severity })} disabled={!canEdit}>
               <option>Low</option><option>Medium</option><option>High</option><option>Critical</option>
             </select>
-            <select className="ci-owner-input" value={f.status} onChange={(e) => edit(f.id, { status: e.target.value as ItemStatus })} disabled={!canEdit}>
-              <option>Open</option><option>In Progress</option><option>Resolved</option>
-            </select>
-            <input className="ci-owner-input" value={f.owner} onChange={(e) => edit(f.id, { owner: e.target.value })} placeholder="Owner" disabled={!canEdit} />
             <button className="btn" onClick={() => remove(f.id)} disabled={!canEdit}>Remove</button>
           </div>
-          <textarea className="ci-owner-input" rows={2} style={{ marginTop: 8 }} value={f.notes} onChange={(e) => edit(f.id, { notes: e.target.value })} placeholder="Remediation details, dependencies, evidence links..." disabled={!canEdit} />
+
+          <div className="readiness-edit-grid readiness-edit-grid-secondary">
+            <select className="ci-owner-input" value={f.category || categories[f.workstream || 'SharePoint & SAM'][0]} onChange={(e) => edit(f.id, { category: e.target.value })} disabled={!canEdit}>
+              {categories[f.workstream || 'SharePoint & SAM'].map((category) => <option key={category}>{category}</option>)}
+            </select>
+            <select className="ci-owner-input" value={normalizedStage(f)} onChange={(e) => edit(f.id, { stage: e.target.value as ReadinessStage })} disabled={!canEdit}>
+              {stages.map((stage) => <option key={stage} disabled={stage === 'Ready' && !f.evidence?.trim()}>{stage}</option>)}
+            </select>
+            <input className="ci-owner-input" value={f.owner} onChange={(e) => edit(f.id, { owner: e.target.value })} placeholder="Accountable owner" disabled={!canEdit} />
+            <input className="ci-owner-input" type="date" value={f.due || ''} onChange={(e) => edit(f.id, { due: e.target.value })} aria-label="Target resolution date" disabled={!canEdit} />
+          </div>
+
+          <div className="grid grid-2" style={{ marginTop: 8 }}>
+            <div className="ci-block">
+              <div className="ci-l">Affected scope</div>
+              <input className="ci-owner-input" type="number" min={0} value={f.affectedScope ?? 0} onChange={(e) => edit(f.id, { affectedScope: Number(e.target.value || 0) })} aria-label="Affected sites or teams" disabled={!canEdit} />
+            </div>
+            <div className="ci-block">
+              <div className="ci-l">Target remaining</div>
+              <input className="ci-owner-input" type="number" min={0} value={f.targetScope ?? 0} onChange={(e) => edit(f.id, { targetScope: Number(e.target.value || 0) })} aria-label="Target remaining sites or teams" disabled={!canEdit} />
+            </div>
+          </div>
+
+          <textarea className="ci-owner-input" rows={2} style={{ marginTop: 8 }} value={f.impact || ''} onChange={(e) => edit(f.id, { impact: e.target.value })} placeholder="Explain in plain language why this could affect Copilot readiness." disabled={!canEdit} />
+          <textarea className="ci-owner-input" rows={2} style={{ marginTop: 8 }} value={f.notes} onChange={(e) => edit(f.id, { notes: e.target.value })} placeholder="Remediation plan, dependencies, and approved exceptions." disabled={!canEdit} />
+          <input className="ci-owner-input" style={{ marginTop: 8 }} value={f.evidence || ''} onChange={(e) => edit(f.id, { evidence: e.target.value })} placeholder="Validation evidence link or reference" disabled={!canEdit} />
+          {normalizedStage(f) === 'Validation needed' && !f.evidence?.trim() && (
+            <p style={{ marginTop: 6, color: 'var(--amber)', fontSize: 12.5 }}>Add validation evidence before marking this finding Ready.</p>
+          )}
+
+          <details style={{ marginTop: 10 }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 700, fontSize: 13 }}>Show remediation guidance</summary>
+            <ol className="pd-list" style={{ fontSize: 12.5, marginTop: 8 }}>
+              <li>Confirm the affected scope and identify an accountable business or service owner.</li>
+              <li>Review access, lifecycle, and sensitivity requirements before changing or deleting content.</li>
+              <li>Remediate in a controlled batch and record exceptions with an approver and review date.</li>
+              <li>Repeat the assessment or access review to verify the target was met.</li>
+              <li>Link the validation result before moving this finding to Ready.</li>
+            </ol>
+          </details>
         </div>
       ))}
     </>

@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test:smoke": "playwright test",
+    "test:hub": "playwright test --config=playwright.hub.config.ts",
     "test:smoke:headed": "playwright test --headed",
     "validate": "npm run build && npm run test:smoke",
     "validate:all": "npm run build && npm --prefix copilot-briefing run build && npm --prefix copilot-onboarding-hub run build && npm run test:smoke"
