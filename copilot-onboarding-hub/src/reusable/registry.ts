@@ -7,7 +7,8 @@ import { Zql, Scale } from '../sections/ZqlScale'
 import { Guardrails, Dlp, AiSec, Acceptance, Human, Reference, Trace, Failure } from '../sections/Content'
 import { Actions } from '../sections/Interactive'
 import { TestPlan } from '../sections/TestPlan'
-import { ReusableAsk, ReusableLessons, ReusableRss, ReusableSam, ReusableTracker } from './ReusableSections'
+import { ReusableAsk, ReusableLessons, ReusableRss, ReusableSam } from './ReusableSections'
+import { RichTracker } from './RichTracker'
 
 export const REUSABLE_SECTION_COMPONENTS: Record<string, ComponentType> = {
   journey: JourneyDashboard,
@@ -32,5 +33,5 @@ export const REUSABLE_SECTION_COMPONENTS: Record<string, ComponentType> = {
   ask: ReusableAsk,
   reference: Reference,
   testplan: TestPlan,
-  tracker: ReusableTracker,
+  tracker: RichTracker,
 }
