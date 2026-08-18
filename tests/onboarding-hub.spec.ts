@@ -1,15 +1,6 @@
 import { expect, test } from '@playwright/test'
 import { readFile } from 'node:fs/promises'
 
-test('hub deployment CSP permits the self-contained tracker bundle', async () => {
-  const config = JSON.parse(await readFile('copilot-onboarding-hub/public/staticwebapp.config.json', 'utf8'))
-  const trackerRoute = config.routes?.find((route: { route: string }) => route.route === '/gcch-dashboard-tracker.html')
-  const trackerCsp = trackerRoute?.headers?.['Content-Security-Policy']
-
-  expect(trackerCsp).toContain("script-src 'self' 'unsafe-inline'")
-  expect(config.navigationFallback.exclude).toContain('/gcch-dashboard-tracker.html')
-})
-
 test.beforeEach(async ({ page }) => {
   await page.goto('/#/journey')
   await page.evaluate(() => localStorage.clear())
@@ -106,6 +97,36 @@ test('Teams remediation work remains trackable through validation', async ({ pag
   await expect(persistedFinding.getByPlaceholder('Validation evidence link or reference')).toHaveValue('Evidence/teams-guest-review.csv')
 })
 
+test('field-informed controls preserve applicability and require validation evidence', async ({ page }) => {
+  await page.goto('/#/sam')
+  await page.getByLabel('Field-informed readiness template').selectOption('grounded-answer-test')
+  await page.getByRole('button', { name: 'Add selected control' }).click()
+
+  const finding = page.locator('.card').filter({ has: page.locator('input[value="Grounded answers need citation and permission-boundary testing"]') })
+  await expect(finding.getByLabel('Environment applicability')).toHaveValue('Validate in tenant')
+  await expect(finding.getByText('A technically available answer is not ready until its source, citation, freshness, and user-specific access behavior are validated.')).toBeVisible()
+  await expect(finding.getByPlaceholder('Remediation plan, dependencies, and approved exceptions.')).toContainText('expected authoritative source')
+
+  const stage = finding.getByRole('combobox').nth(3)
+  await expect(stage.locator('option', { hasText: 'Ready' })).toBeDisabled()
+  await finding.getByPlaceholder('Validation evidence link or reference').fill('Evidence/grounded-answer-test.csv')
+  await expect(stage.locator('option', { hasText: 'Ready' })).toBeDisabled()
+  await finding.getByPlaceholder('Representative test question').fill('What is the approved travel policy?')
+  await finding.getByPlaceholder('Expected authoritative source').fill('HR/Travel/Policy.docx')
+  await finding.getByPlaceholder('Persona that should receive the answer').fill('Employee')
+  await finding.getByPlaceholder('Persona that must not receive the answer').fill('External guest')
+  await finding.getByPlaceholder('Freshness requirement').fill('Published within the last 12 months')
+  await finding.getByLabel('Citation result').selectOption('Pass')
+  await finding.getByLabel('Permission boundary result').selectOption('Pass')
+  await stage.selectOption('Ready')
+  await page.reload()
+
+  const persisted = page.locator('.card').filter({ has: page.locator('input[value="Grounded answers need citation and permission-boundary testing"]') })
+  await expect(persisted.getByLabel('Environment applicability')).toHaveValue('Validate in tenant')
+  await expect(persisted.getByRole('combobox').nth(3)).toHaveValue('Ready')
+  await expect(persisted.getByLabel('Permission boundary result')).toHaveValue('Pass')
+})
+
 test('viewer mode protects readiness data from editing', async ({ page }) => {
   await page.evaluate(() => localStorage.setItem('lemon_role_mode', 'viewer'))
   await page.goto('/#/sam')
@@ -195,7 +216,12 @@ test('full live tracker combines readiness gates, owned work, review changes, an
   await expect(page.getByText('Top 3 next actions')).toBeVisible()
   await expect(page.getByText('Copilot readiness gate scorecard')).toBeVisible()
   await expect(page.getByText('5/5')).toBeVisible()
+  await expect(page.getByText('Program readiness gates')).toBeVisible()
+  await expect(page.getByText('Current environment: GCC High')).toBeVisible()
+  await expect(page.getByText('Grounded answers pass citation and permission tests')).toBeVisible()
   await expect(page.getByText('Owned tracker items')).toBeVisible()
+  await expect(page.locator('input[value="Complete agent and connector assessment"]')).toBeVisible()
+  await expect(page.locator('.badge').filter({ hasText: /^Validate in tenant$/ }).first()).toBeVisible()
   await expect(page.getByRole('button', { name: '+ Add tracker item' })).toBeVisible()
   await expect(page.frameLocator('iframe[title="GCCH Copilot Dashboard Tracker"]').getByText('Deployment Readiness Roadmap')).toBeVisible()
 

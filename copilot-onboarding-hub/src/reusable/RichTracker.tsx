@@ -13,7 +13,19 @@ type TrackItem = {
   owner: string
   due: string
   status: ItemStatus
+  phase?: 'Discover' | 'Govern' | 'Remediate' | 'Validate' | 'Pilot' | 'Extend' | 'Monitor'
+  applicability?: 'Commercial, GCC, and GCC High' | 'Validate in tenant'
+  evidence?: string
   notes: string
+}
+
+type RemediationFinding = {
+  category?: string
+  stage?: string
+  status?: ItemStatus
+  evidence?: string
+  citationResult?: 'Not tested' | 'Pass' | 'Fail'
+  boundaryResult?: 'Not tested' | 'Pass' | 'Fail'
 }
 
 type V2Persisted = {
@@ -58,10 +70,16 @@ export function RichTracker() {
   const due = persisted.workDue || {}
   const blockers = persisted.blockers || []
   const evidence = persisted.evidence || []
+  const remediation = readWorkspaceValue<RemediationFinding[]>(LEMON_KEYS.sam, [])
   const canEdit = getRoleMode() !== 'viewer'
   const [items, setItems] = useWorkspaceState<TrackItem[]>(LEMON_KEYS.tracker, [
-    { id: 'trk-1', title: 'Confirm identity baseline controls', owner: 'Identity Admin', due: '', status: 'Open', notes: '' },
-    { id: 'trk-2', title: 'Run pilot test plan', owner: 'Program Lead', due: '', status: 'Open', notes: '' },
+    { id: 'trk-discover', title: 'Complete tenant inventory and risk baseline', owner: 'Program Lead', due: '', status: 'Open', phase: 'Discover', applicability: 'Commercial, GCC, and GCC High', evidence: '', notes: 'Inventory sites, Teams, groups, owners, activity, external sharing, and unique permissions.' },
+    { id: 'trk-govern', title: 'Approve ownership and lifecycle decisions', owner: 'Governance Lead', due: '', status: 'Open', phase: 'Govern', applicability: 'Commercial, GCC, and GCC High', evidence: '', notes: 'Record owners, attestations, retention obligations, exceptions, and disposition decisions.' },
+    { id: 'trk-remediate', title: 'Close priority access and stale-content findings', owner: 'SharePoint and Teams Admins', due: '', status: 'Open', phase: 'Remediate', applicability: 'Commercial, GCC, and GCC High', evidence: '', notes: 'Fix inappropriate access and lifecycle gaps; use RCD only as a temporary discovery control with an exit plan.' },
+    { id: 'trk-validate', title: 'Pass grounded-answer and permission-boundary tests', owner: 'Pilot Test Lead', due: '', status: 'Open', phase: 'Validate', applicability: 'Validate in tenant', evidence: '', notes: 'Validate expected source, citation, freshness, allowed persona, denied persona, and acceptable abstention.' },
+    { id: 'trk-pilot', title: 'Approve evidence-based pilot expansion', owner: 'Program Lead', due: '', status: 'Open', phase: 'Pilot', applicability: 'Validate in tenant', evidence: '', notes: 'Use readiness evidence, user feedback, support trends, and accepted risk to make the rollout decision.' },
+    { id: 'trk-extend', title: 'Complete agent and connector assessment', owner: 'AI Platform Owner', due: '', status: 'Open', phase: 'Extend', applicability: 'Validate in tenant', evidence: '', notes: 'Validate cloud availability, licensing, authentication, identity mapping, ACLs, crawl scope and latency, data handling, rollback, and answer quality.' },
+    { id: 'trk-monitor', title: 'Establish adoption and security monitoring', owner: 'Compliance and Adoption Leads', due: '', status: 'Open', phase: 'Monitor', applicability: 'Validate in tenant', evidence: '', notes: 'Use Microsoft 365 reports for adoption and Purview for audit, data security, DLP, and risky-interaction monitoring.' },
   ], 'tracker')
   const [snapshot, setSnapshot] = useState<ReviewSnapshot | null>(() =>
     readWorkspaceValue<ReviewSnapshot | null>(LEMON_KEYS.trackerSnapshot, null),
@@ -112,6 +130,26 @@ export function RichTracker() {
   ]
   const gatePass = gates.filter((gate) => gate.pass).length
 
+  const findingReady = (finding: RemediationFinding) =>
+    (finding.stage === 'Ready' || finding.status === 'Resolved') && Boolean(finding.evidence?.trim())
+  const findingsFor = (pattern: RegExp) => remediation.filter((finding) => pattern.test(finding.category || ''))
+  const categoryGate = (pattern: RegExp) => {
+    const relevant = findingsFor(pattern)
+    return relevant.length > 0 && relevant.every(findingReady)
+  }
+  const answerTests = findingsFor(/Answer quality validation/i)
+  const programGates = [
+    { label: 'Every collaboration space has accountable ownership', pass: categoryGate(/Ownership|Lifecycle and ownership/i) },
+    { label: 'Priority sharing and access risks are corrected', pass: categoryGate(/Oversharing|Guest and external access|Public teams|Connected SharePoint/i) },
+    { label: 'Stale content has an approved lifecycle decision', pass: categoryGate(/Inactive sites|Stale channels|Lifecycle and ownership/i) },
+    {
+      label: 'Grounded answers pass citation and permission tests',
+      pass: answerTests.length > 0 && answerTests.every((finding) => findingReady(finding) && finding.citationResult === 'Pass' && finding.boundaryResult === 'Pass'),
+    },
+    { label: 'Adoption, support, and security monitoring are operating', pass: items.some((item) => item.phase === 'Monitor' && item.status === 'Resolved' && Boolean(item.evidence?.trim())) },
+  ]
+  const programGatePass = programGates.filter((gate) => gate.pass).length
+
   const changes = useMemo(() => {
     if (!snapshot) return [] as string[]
     const result: string[] = []
@@ -146,7 +184,7 @@ export function RichTracker() {
     setItems((current) => current.map((item) => (item.id === id ? { ...item, ...patch } : item)))
   const add = () => {
     if (!canEdit) return
-    setItems((current) => [{ id: `trk-${Date.now()}`, title: 'New tracker item', owner: '', due: '', status: 'Open', notes: '' }, ...current])
+    setItems((current) => [{ id: `trk-${Date.now()}`, title: 'New tracker item', owner: '', due: '', status: 'Open', phase: 'Discover', applicability: 'Commercial, GCC, and GCC High', evidence: '', notes: '' }, ...current])
   }
   const remove = (id: string) => setItems((current) => current.filter((item) => item.id !== id))
 
@@ -218,6 +256,23 @@ export function RichTracker() {
 
       <div className="card" style={{ marginBottom: 12 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="card-h">Program readiness gates</div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="badge badge-pending">Current environment: {getV2Template(cloud).label}</span>
+            <span className={`badge ${programGatePass === programGates.length ? 'badge-done' : 'badge-progress'}`}>{programGatePass}/{programGates.length} passed</span>
+          </div>
+        </div>
+        <p style={{ marginTop: 6, marginBottom: 10 }}>These plain-language gates use evidence from readiness findings and operating milestones. “Validate in tenant” controls require confirmation for the selected cloud.</p>
+        <table className="matrix">
+          <thead><tr><th>Program gate</th><th>Status</th></tr></thead>
+          <tbody>{programGates.map((gate) => (
+            <tr key={gate.label}><td>{gate.label}</td><td><span className={`badge ${gate.pass ? 'badge-done' : 'badge-red'}`}>{gate.pass ? 'Pass' : 'Needs evidence'}</span></td></tr>
+          ))}</tbody>
+        </table>
+      </div>
+
+      <div className="card" style={{ marginBottom: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           <div className="card-h">Owned tracker items</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span className="badge badge-pending">{items.length} item(s)</span>
@@ -226,6 +281,10 @@ export function RichTracker() {
         </div>
         {items.map((item) => (
           <div className="ci-block" key={item.id} style={{ marginTop: 10 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 8, flexWrap: 'wrap' }}>
+              <span className="badge badge-progress">{item.phase || 'Discover'}</span>
+              <span className="badge badge-pending">{item.applicability || 'Commercial, GCC, and GCC High'}</span>
+            </div>
             <div className="tracker-edit-grid">
               <input className="ci-owner-input" value={item.title} onChange={(event) => edit(item.id, { title: event.target.value })} disabled={!canEdit} />
               <input className="ci-owner-input" value={item.owner} onChange={(event) => edit(item.id, { owner: event.target.value })} placeholder="Owner" disabled={!canEdit} />
@@ -236,6 +295,15 @@ export function RichTracker() {
               <button className="btn" onClick={() => remove(item.id)} disabled={!canEdit}>Remove</button>
             </div>
             <textarea className="ci-owner-input" style={{ marginTop: 8 }} rows={2} value={item.notes} onChange={(event) => edit(item.id, { notes: event.target.value })} placeholder="Notes" disabled={!canEdit} />
+            <div className="grid grid-2" style={{ marginTop: 8 }}>
+              <select className="ci-owner-input" aria-label={`Phase for ${item.title}`} value={item.phase || 'Discover'} onChange={(event) => edit(item.id, { phase: event.target.value as TrackItem['phase'] })} disabled={!canEdit}>
+                <option>Discover</option><option>Govern</option><option>Remediate</option><option>Validate</option><option>Pilot</option><option>Extend</option><option>Monitor</option>
+              </select>
+              <select className="ci-owner-input" aria-label={`Applicability for ${item.title}`} value={item.applicability || 'Commercial, GCC, and GCC High'} onChange={(event) => edit(item.id, { applicability: event.target.value as TrackItem['applicability'] })} disabled={!canEdit}>
+                <option>Commercial, GCC, and GCC High</option><option>Validate in tenant</option>
+              </select>
+            </div>
+            <input className="ci-owner-input" style={{ marginTop: 8 }} value={item.evidence || ''} onChange={(event) => edit(item.id, { evidence: event.target.value })} placeholder="Milestone evidence link or reference" disabled={!canEdit} />
           </div>
         ))}
       </div>
