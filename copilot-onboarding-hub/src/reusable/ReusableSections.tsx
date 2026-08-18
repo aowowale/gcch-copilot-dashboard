@@ -137,6 +137,8 @@ export function ReusableTracker() {
 export function ReusableSam() {
   type Workstream = 'SharePoint & SAM' | 'Microsoft Teams'
   type ReadinessStage = 'Not assessed' | 'Findings identified' | 'Remediation underway' | 'Validation needed' | 'Ready'
+  type Applicability = 'Commercial, GCC, and GCC High' | 'Validate in tenant'
+  type ValidationResult = 'Not tested' | 'Pass' | 'Fail'
   type SamFinding = {
     id: string
     title: string
@@ -151,8 +153,99 @@ export function ReusableSam() {
     due?: string
     impact?: string
     evidence?: string
+    applicability?: Applicability
+    testQuestion?: string
+    expectedSource?: string
+    permittedPersona?: string
+    prohibitedPersona?: string
+    freshnessRequirement?: string
+    citationResult?: ValidationResult
+    boundaryResult?: ValidationResult
     notes: string
   }
+  type FindingTemplate = Omit<SamFinding, 'id' | 'stage' | 'affectedScope' | 'targetScope' | 'due' | 'evidence'> & { id: string }
+
+  const findingTemplates: FindingTemplate[] = [
+    {
+      id: 'ownerless-sites',
+      title: 'Orphaned sites and groups need accountable owners',
+      workstream: 'SharePoint & SAM',
+      category: 'Ownership review',
+      severity: 'High',
+      owner: 'SharePoint Admin',
+      impact: 'Unowned workspaces can retain stale access and content without a business decision maker.',
+      applicability: 'Commercial, GCC, and GCC High',
+      notes: 'Inventory sites and connected groups without active owners, assign an accountable owner, and record the attestation result.',
+    },
+    {
+      id: 'broad-sharing',
+      title: 'Broad, external, or unique permissions need review',
+      workstream: 'SharePoint & SAM',
+      category: 'Oversharing',
+      severity: 'Critical',
+      owner: 'SharePoint Admin',
+      impact: 'Copilot respects existing access, so outdated or overly broad permissions can amplify an existing oversharing problem.',
+      applicability: 'Commercial, GCC, and GCC High',
+      notes: 'Review broad links, external access, and unique permissions; remove inappropriate access and retain approved exceptions.',
+    },
+    {
+      id: 'stale-content',
+      title: 'Inactive sites and stale content need lifecycle decisions',
+      workstream: 'SharePoint & SAM',
+      category: 'Inactive sites',
+      severity: 'High',
+      owner: 'Records and SharePoint Admins',
+      impact: 'Obsolete content can reduce answer quality and create avoidable governance risk.',
+      applicability: 'Commercial, GCC, and GCC High',
+      notes: 'Classify each location for retention, remediation, archival through an approved process, or disposition. Do not treat manual copying as the default archive method.',
+    },
+    {
+      id: 'rcd-transition',
+      title: 'Temporary RCD scope needs an exit plan',
+      workstream: 'SharePoint & SAM',
+      category: 'RCD scope',
+      severity: 'High',
+      owner: 'SharePoint Admin',
+      impact: 'Restricted Content Discovery limits discovery but does not remove user access or fix underlying permissions.',
+      applicability: 'Validate in tenant',
+      notes: 'Record why each site is restricted, the underlying access remediation owner, the review date, and the condition for removing the temporary restriction.',
+    },
+    {
+      id: 'grounded-answer-test',
+      title: 'Grounded answers need citation and permission-boundary testing',
+      workstream: 'SharePoint & SAM',
+      category: 'Answer quality validation',
+      severity: 'High',
+      owner: 'Pilot Test Lead',
+      impact: 'A technically available answer is not ready until its source, citation, freshness, and user-specific access behavior are validated.',
+      applicability: 'Validate in tenant',
+      citationResult: 'Not tested',
+      boundaryResult: 'Not tested',
+      notes: 'Record the test question, expected authoritative source, permitted and prohibited personas, freshness requirement, citation result, and acceptable abstention behavior.',
+    },
+    {
+      id: 'teams-lifecycle',
+      title: 'Inactive or ownerless teams need lifecycle review',
+      workstream: 'Microsoft Teams',
+      category: 'Lifecycle and ownership',
+      severity: 'High',
+      owner: 'Teams Admin',
+      impact: 'Stale collaboration spaces can retain access and content without an accountable business owner.',
+      applicability: 'Commercial, GCC, and GCC High',
+      notes: 'Validate owners, activity, guests, connected group and SharePoint resources, retention obligations, and the approved lifecycle decision.',
+    },
+    {
+      id: 'connector-assessment',
+      title: 'Agent or connector requires security and quality assessment',
+      workstream: 'SharePoint & SAM',
+      category: 'Agents and connectors',
+      severity: 'High',
+      owner: 'AI Platform Owner',
+      impact: 'External knowledge can expand value and risk through identity mapping, crawl scope, synchronization latency, and source permissions.',
+      applicability: 'Validate in tenant',
+      notes: 'Confirm cloud availability, licensing, authentication, ACL and identity mapping, indexed scope, crawl latency, data handling, source ownership, rollback, and answer-quality tests before rollout.',
+    },
+  ]
   const [findings, setFindings] = useWorkspaceState<SamFinding[]>(LEMON_KEYS.sam, [
     {
       id: 'sam-1',
@@ -166,6 +259,7 @@ export function ReusableSam() {
       targetScope: 0,
       impact: 'Copilot may surface content to people who already have access but should no longer need it.',
       evidence: '',
+      applicability: 'Commercial, GCC, and GCC High',
       notes: '',
     },
     {
@@ -180,6 +274,7 @@ export function ReusableSam() {
       targetScope: 0,
       impact: 'Stale collaboration spaces can retain access and content without an accountable business owner.',
       evidence: '',
+      applicability: 'Commercial, GCC, and GCC High',
       notes: '',
     },
   ], 'sam')
@@ -188,12 +283,26 @@ export function ReusableSam() {
   const workstreams: Workstream[] = ['SharePoint & SAM', 'Microsoft Teams']
   const stages: ReadinessStage[] = ['Not assessed', 'Findings identified', 'Remediation underway', 'Validation needed', 'Ready']
   const categories: Record<Workstream, string[]> = {
-    'SharePoint & SAM': ['Oversharing', 'Sensitivity labels', 'Inactive sites', 'Legacy protection', 'Pilot search scope'],
+    'SharePoint & SAM': ['Oversharing', 'Sensitivity labels', 'Inactive sites', 'Legacy protection', 'Pilot search scope', 'RCD scope', 'Ownership review', 'Answer quality validation', 'Agents and connectors'],
     'Microsoft Teams': ['Lifecycle and ownership', 'Guest and external access', 'Public teams', 'Stale channels', 'Sensitivity labels', 'Connected SharePoint content'],
   }
 
+  const hasValidationEvidence = (finding: SamFinding) => {
+    if (!finding.evidence?.trim()) return false
+    if (finding.category !== 'Answer quality validation') return true
+    return Boolean(
+      finding.testQuestion?.trim()
+      && finding.expectedSource?.trim()
+      && finding.permittedPersona?.trim()
+      && finding.prohibitedPersona?.trim()
+      && finding.freshnessRequirement?.trim()
+      && finding.citationResult === 'Pass'
+      && finding.boundaryResult === 'Pass',
+    )
+  }
+
   const normalizedStage = (finding: SamFinding): ReadinessStage => {
-    if (finding.stage === 'Ready' && !finding.evidence?.trim()) return 'Validation needed'
+    if (finding.stage === 'Ready' && !hasValidationEvidence(finding)) return 'Validation needed'
     if (finding.stage) return finding.stage
     if (finding.status === 'Resolved') return 'Ready'
     if (finding.status === 'In Progress') return 'Remediation underway'
@@ -217,7 +326,7 @@ export function ReusableSam() {
   const edit = (id: string, patch: Partial<SamFinding>) => setFindings((prev) => prev.map((finding) => {
     if (finding.id !== id) return finding
     const next = { ...finding, ...patch }
-    if (next.stage === 'Ready' && !next.evidence?.trim()) next.stage = 'Validation needed'
+    if (next.stage === 'Ready' && !hasValidationEvidence(next)) next.stage = 'Validation needed'
     return next
   }))
   const add = (workstream: Workstream) => {
@@ -235,7 +344,22 @@ export function ReusableSam() {
       due: '',
       impact: '',
       evidence: '',
+      applicability: 'Commercial, GCC, and GCC High',
       notes: '',
+    }, ...prev])
+  }
+  const addTemplate = (templateId: string) => {
+    if (!canEdit) return
+    const template = findingTemplates.find((item) => item.id === templateId)
+    if (!template) return
+    setFindings((prev) => [{
+      ...template,
+      id: `ready-${Date.now()}`,
+      stage: 'Findings identified',
+      affectedScope: 0,
+      targetScope: 0,
+      due: '',
+      evidence: '',
     }, ...prev])
   }
   const remove = (id: string) => setFindings((prev) => prev.filter((f) => f.id !== id))
@@ -251,6 +375,21 @@ export function ReusableSam() {
         <p style={{ fontSize: 13, marginTop: 6 }}>Assess the tenant, turn findings into owned cleanup work, validate the result, and retain evidence. “Ready” means the target was met and checked, not simply that work was attempted.</p>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
           {stages.map((stage, index) => <span className="badge badge-pending" key={stage}>{index + 1}. {stage}</span>)}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 12 }}>
+        <div className="card-h">Start from a field-informed control</div>
+        <p style={{ fontSize: 13, marginTop: 6 }}>Choose a reusable control, then replace the example scope with tenant evidence. Customer-specific techniques remain examples, not required procedures.</p>
+        <div style={{ display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+          <select className="ci-owner-input" aria-label="Field-informed readiness template" defaultValue="">
+            <option value="" disabled>Select a control template</option>
+            {findingTemplates.map((template) => <option key={template.id} value={template.id}>{template.title}</option>)}
+          </select>
+          <button className="btn btn-primary" disabled={!canEdit} onClick={(event) => {
+            const select = event.currentTarget.previousElementSibling as HTMLSelectElement | null
+            if (select?.value) addTemplate(select.value)
+          }}>Add selected control</button>
         </div>
       </div>
 
@@ -288,10 +427,18 @@ export function ReusableSam() {
               {categories[f.workstream || 'SharePoint & SAM'].map((category) => <option key={category}>{category}</option>)}
             </select>
             <select className="ci-owner-input" value={normalizedStage(f)} onChange={(e) => edit(f.id, { stage: e.target.value as ReadinessStage })} disabled={!canEdit}>
-              {stages.map((stage) => <option key={stage} disabled={stage === 'Ready' && !f.evidence?.trim()}>{stage}</option>)}
+              {stages.map((stage) => <option key={stage} disabled={stage === 'Ready' && !hasValidationEvidence(f)}>{stage}</option>)}
             </select>
             <input className="ci-owner-input" value={f.owner} onChange={(e) => edit(f.id, { owner: e.target.value })} placeholder="Accountable owner" disabled={!canEdit} />
             <input className="ci-owner-input" type="date" value={f.due || ''} onChange={(e) => edit(f.id, { due: e.target.value })} aria-label="Target resolution date" disabled={!canEdit} />
+          </div>
+
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <span className="badge badge-pending">Applicability</span>
+            <select className="ci-owner-input" aria-label="Environment applicability" value={f.applicability || 'Commercial, GCC, and GCC High'} onChange={(e) => edit(f.id, { applicability: e.target.value as Applicability })} disabled={!canEdit}>
+              <option>Commercial, GCC, and GCC High</option>
+              <option>Validate in tenant</option>
+            </select>
           </div>
 
           <div className="grid grid-2" style={{ marginTop: 8 }}>
@@ -307,9 +454,29 @@ export function ReusableSam() {
 
           <textarea className="ci-owner-input" rows={2} style={{ marginTop: 8 }} value={f.impact || ''} onChange={(e) => edit(f.id, { impact: e.target.value })} placeholder="Explain in plain language why this could affect Copilot readiness." disabled={!canEdit} />
           <textarea className="ci-owner-input" rows={2} style={{ marginTop: 8 }} value={f.notes} onChange={(e) => edit(f.id, { notes: e.target.value })} placeholder="Remediation plan, dependencies, and approved exceptions." disabled={!canEdit} />
+          {f.category === 'Answer quality validation' && (
+            <div className="ci-block" style={{ marginTop: 8 }}>
+              <div className="card-h" style={{ marginBottom: 8 }}>Grounded-answer test</div>
+              <div className="grid grid-2">
+                <input className="ci-owner-input" value={f.testQuestion || ''} onChange={(e) => edit(f.id, { testQuestion: e.target.value })} placeholder="Representative test question" disabled={!canEdit} />
+                <input className="ci-owner-input" value={f.expectedSource || ''} onChange={(e) => edit(f.id, { expectedSource: e.target.value })} placeholder="Expected authoritative source" disabled={!canEdit} />
+                <input className="ci-owner-input" value={f.permittedPersona || ''} onChange={(e) => edit(f.id, { permittedPersona: e.target.value })} placeholder="Persona that should receive the answer" disabled={!canEdit} />
+                <input className="ci-owner-input" value={f.prohibitedPersona || ''} onChange={(e) => edit(f.id, { prohibitedPersona: e.target.value })} placeholder="Persona that must not receive the answer" disabled={!canEdit} />
+                <input className="ci-owner-input" value={f.freshnessRequirement || ''} onChange={(e) => edit(f.id, { freshnessRequirement: e.target.value })} placeholder="Freshness requirement" disabled={!canEdit} />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <select className="ci-owner-input" aria-label="Citation result" value={f.citationResult || 'Not tested'} onChange={(e) => edit(f.id, { citationResult: e.target.value as ValidationResult })} disabled={!canEdit}>
+                    <option>Not tested</option><option>Pass</option><option>Fail</option>
+                  </select>
+                  <select className="ci-owner-input" aria-label="Permission boundary result" value={f.boundaryResult || 'Not tested'} onChange={(e) => edit(f.id, { boundaryResult: e.target.value as ValidationResult })} disabled={!canEdit}>
+                    <option>Not tested</option><option>Pass</option><option>Fail</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
           <input className="ci-owner-input" style={{ marginTop: 8 }} value={f.evidence || ''} onChange={(e) => edit(f.id, { evidence: e.target.value })} placeholder="Validation evidence link or reference" disabled={!canEdit} />
-          {normalizedStage(f) === 'Validation needed' && !f.evidence?.trim() && (
-            <p style={{ marginTop: 6, color: 'var(--amber)', fontSize: 12.5 }}>Add validation evidence before marking this finding Ready.</p>
+          {normalizedStage(f) === 'Validation needed' && !hasValidationEvidence(f) && (
+            <p style={{ marginTop: 6, color: 'var(--amber)', fontSize: 12.5 }}>{f.category === 'Answer quality validation' ? 'Complete the grounded-answer fields, pass both checks, and add evidence before marking this finding Ready.' : 'Add validation evidence before marking this finding Ready.'}</p>
           )}
 
           <details style={{ marginTop: 10 }}>
