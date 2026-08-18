@@ -166,6 +166,44 @@ test('executive and readiness views remain usable on a narrow screen', async ({ 
   expect(horizontalOverflow).toBe(false)
 })
 
+test('full live tracker combines readiness gates, owned work, review changes, and the roadmap', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('copilot_onboarding_v2_state', JSON.stringify({
+    profile: { cloud: 'gcch', path: 'pilot', teamName: 'Federal Pilot' },
+    workStatus: {
+      'ctrl-ca': 'done',
+      'ctrl-integrated': 'done',
+      'ctrl-retention': 'done',
+      'ctrl-dlp': 'done',
+      'ctrl-rss-rcd': 'done',
+    },
+    workDue: {},
+    blockers: [],
+    evidence: [{ id: 'ev-ready', title: 'Pilot evidence', status: 'complete' }],
+  })))
+  await page.goto('/#/tracker')
+
+  await expect(page.getByRole('heading', { name: 'Live Tracker — Start Here' })).toBeVisible()
+  await expect(page.getByText('Top 3 next actions')).toBeVisible()
+  await expect(page.getByText('Copilot readiness gate scorecard')).toBeVisible()
+  await expect(page.getByText('5/5')).toBeVisible()
+  await expect(page.getByText('Owned tracker items')).toBeVisible()
+  await expect(page.getByRole('button', { name: '+ Add tracker item' })).toBeVisible()
+  await expect(page.frameLocator('iframe[title="GCCH Copilot Dashboard Tracker"]').getByText('Deployment Readiness Roadmap')).toBeVisible()
+
+  await page.getByRole('button', { name: 'Capture review snapshot' }).click()
+  await page.evaluate(() => {
+    const state = JSON.parse(localStorage.getItem('copilot_onboarding_v2_state') || '{}')
+    state.workStatus['ctrl-ca'] = 'blocked'
+    localStorage.setItem('copilot_onboarding_v2_state', JSON.stringify(state))
+  })
+  await page.reload()
+  await expect(page.getByText('Conditional Access for Copilot app scope: Done -> Blocked')).toBeVisible()
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  const horizontalOverflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)
+  expect(horizontalOverflow).toBe(false)
+})
+
 test('dashboard and readiness center avoid overflow at tablet and desktop widths', async ({ page }) => {
   for (const viewport of [{ width: 768, height: 1024 }, { width: 1280, height: 900 }]) {
     await page.setViewportSize(viewport)
