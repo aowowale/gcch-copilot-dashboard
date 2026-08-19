@@ -306,3 +306,4 @@ Use this checklist when adapting the project for a new organization:
 - If `npm` is not recognized in PowerShell, refresh PATH or open a new shell.
 - If deployment fails in GCCH, confirm cloud/region alignment and RBAC permissions.
 - If tracker iframe shows 404 in a standalone app, confirm `public/gcch-dashboard-tracker.html` exists in that standalone project.
+- If required status checks are not selectable in branch protection yet, open a small PR first so workflows run and checks become available in GitHub settings.
