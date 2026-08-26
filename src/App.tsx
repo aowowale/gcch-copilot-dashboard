@@ -1,14 +1,17 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route, NavLink, useNavigate, useParams, Navigate, useLocation } from 'react-router-dom'
 import { StoreProvider } from './lib/store'
-import { SECTIONS } from './lib/sections'
+import { SECTIONS, PHASES, GUIDED_SEQUENCE, type SectionDef } from './lib/sections'
 import { meta } from './data/content'
 import { SECTION_COMPONENTS } from './sections/registry'
 import { useStore } from './lib/store'
-
-const GUIDED_SEQUENCE = ['home', 'tracker', 'controls', 'ask']
+import { ThemeToggle } from './components/Primitives'
 
 function Sidebar() {
+  const [open, setOpen] = useState<Record<string, boolean>>(
+    () => Object.fromEntries(PHASES.map((p) => [p.name, true])),
+  )
+  const toggle = (name: string) => setOpen((o) => ({ ...o, [name]: !o[name] }))
   return (
     <aside className="sidebar">
       <div className="sidebar-head">
@@ -16,16 +19,38 @@ function Sidebar() {
         <div className="sub">GCC High — Interactive Briefing</div>
       </div>
       <nav className="nav">
-        {SECTIONS.map((s) => (
-          <NavLink
-            key={s.id}
-            to={`/${s.id}`}
-            className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}
-          >
-            <span className="nav-num">{s.num}</span>
-            <span className="nav-name">{s.name}</span>
-          </NavLink>
-        ))}
+        {PHASES.map((p) => {
+          const isOpen = open[p.name]
+          const items = p.sectionIds
+            .map((id) => SECTIONS.find((s) => s.id === id))
+            .filter((s): s is SectionDef => Boolean(s))
+          return (
+            <div key={p.name} className={'phase-group' + (isOpen ? ' open' : '')}>
+              <button
+                className="phase-toggle"
+                onClick={() => toggle(p.name)}
+                aria-expanded={isOpen}
+              >
+                <span className="pt-name">{p.name}</span>
+                <span className="pt-right">
+                  <span className="phase-badge">{items.length}</span>
+                  <span className="pt-chev">{isOpen ? '▾' : '▸'}</span>
+                </span>
+              </button>
+              {isOpen &&
+                items.map((s) => (
+                  <NavLink
+                    key={s.id}
+                    to={`/${s.id}`}
+                    className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}
+                  >
+                    <span className="nav-num">{s.num}</span>
+                    <span className="nav-name">{s.name}</span>
+                  </NavLink>
+                ))}
+            </div>
+          )
+        })}
       </nav>
     </aside>
   )
@@ -73,6 +98,7 @@ function Topbar() {
           )}
         </div>
       )}
+      <ThemeToggle />
       <button className="btn" onClick={() => window.print()}>Print</button>
     </div>
   )

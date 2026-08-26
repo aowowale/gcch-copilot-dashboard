@@ -194,7 +194,7 @@ export function Sam() {
         deployment pace. RSS removes SharePoint as a risk surface but does NOT eliminate Graph risk — be precise
         about that. The five-point gate is your strongest artifact. Ownership is a hard gate. KPIs make it trackable.
       </SpeakerNote>
-      <div className="card" style={{ background: 'linear-gradient(135deg,var(--navy),var(--blue))', color: '#fff', border: 'none', marginBottom: 18 }}>
+      <div className="card" style={{ background: 'linear-gradient(135deg,#0E2841,var(--blue))', color: '#fff', border: 'none', marginBottom: 18 }}>
         <div style={{ fontSize: 11, color: '#7BAFD4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 12 }}>Control Model — anchor for the whole conversation</div>
         <div className="grid grid-2" style={{ gap: 10 }}>
           {s.controlModel.map((c: any, i: number) => (
@@ -369,7 +369,7 @@ export function Trace() {
         Be explicit that the log sample is representative schema, not a tenant capture, and that completeness is a
         pilot acceptance item. That honesty is what makes it defensible.
       </SpeakerNote>
-      <div className="card" style={{ marginBottom: 16, background: 'var(--navy)', color: '#fff', border: 'none' }}>
+      <div className="card" style={{ marginBottom: 16, background: '#0E2841', color: '#fff', border: 'none' }}>
         <div style={{ fontSize: 11, color: '#7BAFD4', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 10 }}>IR reconstruction chain</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
           {t.chain.map((c: string, i: number) => (

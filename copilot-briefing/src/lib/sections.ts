@@ -23,5 +23,6 @@ export const SECTIONS: SectionDef[] = [
   { id: 'ask', num: '18', name: 'The Ask' },
   { id: 'reference', num: '19', name: 'Technical Reference' },
   { id: 'testplan', num: '20', name: 'Test Plan' },
+  { id: 'governance', num: '23', name: 'Governance Console' },
   { id: 'other', num: '22', name: 'Other' },
 ]

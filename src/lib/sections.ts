@@ -23,5 +23,23 @@ export const SECTIONS: SectionDef[] = [
   { id: 'ask', num: '18', name: 'The Ask' },
   { id: 'reference', num: '19', name: 'Technical Reference' },
   { id: 'testplan', num: '20', name: 'Test Plan' },
+  { id: 'governance', num: '23', name: 'Governance Console' },
   { id: 'other', num: '22', name: 'Other' },
 ]
+
+// Sidebar navigation grouped into phases. Order within each phase preserves
+// the intended reading flow; every section id above appears in exactly one phase.
+export interface PhaseDef { name: string; sectionIds: string[] }
+
+export const PHASES: PhaseDef[] = [
+  { name: 'Start Here', sectionIds: ['home', 'tracker', 'concerns'] },
+  { name: 'Controls & Data', sectionIds: ['controls', 'planes', 'paths', 'zql'] },
+  { name: 'Findings & Remediation', sectionIds: ['sam', 'rss', 'guardrails', 'dlp'] },
+  { name: 'AI Security at Scale', sectionIds: ['aisec', 'scale', 'trace', 'failure'] },
+  { name: 'Pilot & Decision', sectionIds: ['acceptance', 'human', 'lessons', 'actions', 'ask'] },
+  { name: 'Reference & Ops', sectionIds: ['reference', 'testplan', 'governance', 'other'] },
+]
+
+// The guided "first-time journey". Single source of truth — keep in sync with
+// the recommended sequence described on the Home page.
+export const GUIDED_SEQUENCE = ['home', 'tracker', 'controls', 'ask']

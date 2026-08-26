@@ -42,7 +42,7 @@ export function Paths() {
             <div className="pdb-label" style={{ color: 'var(--green)', marginBottom: 8 }}>Why this is the right move — real outcomes</div>
             <div className="grid grid-2" style={{ gap: 10 }}>
               {p.benefits.map((b: [string, string], i: number) => (
-                <div key={i} style={{ background: '#fff', borderRadius: 7, padding: '10px 12px' }}>
+                <div key={i} style={{ background: 'var(--cp-surface)', borderRadius: 7, padding: '10px 12px' }}>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--navy)' }}>{b[0]}</div>
                   <div style={{ fontSize: 12, color: 'var(--gray)', marginTop: 3, lineHeight: 1.55 }}>{b[1]}</div>
                 </div>

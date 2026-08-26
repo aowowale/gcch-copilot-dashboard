@@ -1,5 +1,5 @@
 // Core briefing content. Edit values here; types are in ./types.ts
-import type { BriefingData } from './types';
+import type { BriefingData, Ask, Fear, Path, Agent, Lesson, TestPlan } from './types';
 
 export const meta = {
   "title": "M365 Copilot Deployment Readiness",
@@ -27,7 +27,7 @@ export const asks = [
     "desc": "Agree on the criteria required for scale: gate thresholds, blocker policy, ownership model, and required sign-offs for any boundary-affecting changes (including web grounding decisions).",
     "rationale": "This aligns leadership, security, and operations on objective expansion rules so rollout decisions are repeatable, auditable, and not personality-driven."
   }
-];
+] satisfies Ask[];
 export const fears = [
   {
     "id": "f1",
@@ -101,7 +101,7 @@ export const fears = [
     "control": "Zero Query Logging (ZQL) — confirmed active in this environment. Applies when Copilot operates within the M365 service context (your GCC High enterprise tenant). Bing processes and immediately discards the query. Nothing retained.",
     "detail": "What does NOT go to Bing: tenant documents, email, SharePoint files, full prompts, identifiers. What DOES go: a short derived search query (keywords). ZQL is a retention control, not a boundary elimination. The boundary crossing still occurs, which is why formal approval is required before enabling web grounding."
   }
-];
+] satisfies Fear[];
 export const controls = {
   "Identity": [
     {
@@ -612,7 +612,7 @@ export const paths = [
     ],
     "note": "RSS continues to protect in this path. Web grounding adds capability on top of the protection layer, not instead of it. The path to here starts today with Path 3."
   }
-];
+] satisfies Path[];
 export const zqlSteps = [
   {
     "n": 1,
@@ -967,7 +967,7 @@ export const agents = [
     "does": "Tracks sensitivity label coverage, alerts on unlabeled content added to high-risk sites, scores each site's Copilot readiness.",
     "perms": "Sites.Read.All, Purview Content Explorer access"
   }
-];
+] satisfies Agent[];
 export const agentPrinciples = [
   "All agents use user-delegated permissions — they see only what the signed-in user can see",
   "All Graph calls go to graph.microsoft.us — nothing leaves GCC High",
@@ -1546,7 +1546,7 @@ export const lessons = [
     "d": "Federal reviewers ask not just what you remediated but whether the remediation process can be audited. Site classification, every permission change, and each allowed-list entry with its approval record need to be tracked. A clean estate with no evidence trail of how it got clean is a weaker position than a messier one with full traceability.",
     "takeaway": "Log every classification, permission change, and allowed-list approval. The process is evidence too."
   }
-];
+] satisfies Lesson[];
 export const testPlan = {
   "intro": "Comprehensive validation plan. Every control, every scenario: what to test, how to test it, the expected result, and how to validate it landed. Use fictional or clearly-labeled test content only — never actual sensitive or classified material.",
   "categories": [
@@ -1744,7 +1744,7 @@ export const testPlan = {
       ]
     }
   ]
-};
+} satisfies TestPlan;
 export const tracker = {
   "phases": [
     {

@@ -1,13 +1,13 @@
 // Structural types for briefing content. Intentionally permissive so data stays easy to edit.
 export interface Ask { id: string; title: string; tag: string; desc: string; rationale: string; }
-export interface Fear { id: string; q: string; status: string; tag: string; short: string; control: string; }
+export interface Fear { id: string; q: string; status: string; tag: string; short: string; control: string; detail?: string; }
 export interface Path {
   id: string; num: string; name: string; status: string; statusLabel: string;
   tagline: string; gets: string[]; done: string[]; remaining: string[]; turnon: string[];
   note: string; benefits?: [string, string][];
 }
 export interface OperatingLayer { t: string; short: string; detail: string; signals: string[]; }
-export interface Agent { n: number; name: string; problem: string; does: string; perms: string; }
+export interface Agent { n: string; name: string; problem: string; does: string; perms: string; }
 export interface Lesson { t: string; d: string; takeaway: string; }
 export interface TestItem { s: string; how: string; exp: string; val: string; ex?: string; link?: [string, string]; }
 export interface TestCategory { cat: string; tests: TestItem[]; }

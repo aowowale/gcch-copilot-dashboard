@@ -17,7 +17,7 @@ export function TestPlan() {
       {t.categories.map((c: any, ci: number) => (
         <div key={ci} style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-            <div style={{ background: 'var(--navy)', color: '#fff', borderRadius: 8, padding: '6px 14px', fontSize: 13, fontWeight: 700 }}>{c.cat}</div>
+            <div style={{ background: '#0E2841', color: '#fff', borderRadius: 8, padding: '6px 14px', fontSize: 13, fontWeight: 700 }}>{c.cat}</div>
             <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
           </div>
           {c.tests.map((test: any, ti: number) => (

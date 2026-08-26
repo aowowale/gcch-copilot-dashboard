@@ -2,6 +2,30 @@ import { ReactNode, useState } from 'react'
 import { copyText } from '../lib/util'
 import { REFERENCES } from '../data/references'
 
+// Light/dark theme toggle. Reads the current theme from the <html data-theme>
+// attribute set by the no-flash init script and persists the user's choice.
+export function ThemeToggle() {
+  const [theme, setTheme] = useState<string>(
+    () => document.documentElement.getAttribute('data-theme') || 'light',
+  )
+  const toggle = () => {
+    const next = theme === 'dark' ? 'light' : 'dark'
+    document.documentElement.setAttribute('data-theme', next)
+    try { localStorage.setItem('gcch_theme', next) } catch { /* ignore */ }
+    setTheme(next)
+  }
+  return (
+    <button
+      className="btn"
+      onClick={toggle}
+      aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+      title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+    >
+      {theme === 'dark' ? '☀ Light' : '☾ Dark'}
+    </button>
+  )
+}
+
 export function SectionHead({ num, title, children }: { num: string; title: string; children?: ReactNode }) {
   return (
     <div className="section-head">

@@ -395,6 +395,158 @@ body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,sans-serif;backgrou
 .jg-kicker{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ltblue)}
 .jg-step{font-size:15px;font-weight:700;color:var(--navy)}
 .jg-nav{display:flex;gap:8px;flex-wrap:wrap}
+
+/* ============================================================
+   SHARED DESIGN TOKENS (--cp-*) — aligned with the SAM readiness
+   tool so the two products share one design vocabulary. Mapped
+   onto the existing palette so nothing changes visually today;
+   new/ported components should consume these semantic tokens.
+   Dark values are defined under [data-theme="dark"] and are ready
+   to activate once components are migrated off hardcoded colors.
+   ============================================================ */
+:root{
+  --cp-bg:var(--ltgray);
+  --cp-bg-elevated:#fcfbf8;
+  --cp-surface:#ffffff;
+  --cp-surface-soft:#f5f5f5;
+  --cp-border:var(--border);
+  --cp-border-strong:#919191;
+  --cp-text:var(--slate);
+  --cp-text-muted:var(--gray);
+  --cp-text-soft:#6f6f6f;
+  --cp-accent:var(--blue);
+  --cp-accent-hover:var(--navy);
+  --cp-accent-soft:rgba(21,96,130,.08);
+  --cp-accent-fg:#ffffff;
+  --cp-success:var(--green);
+  --cp-danger:var(--red);
+  --cp-warning:var(--amber);
+  --cp-link:var(--blue);
+  --cp-shadow:var(--shadow-lg);
+  --cp-radius:10px;
+}
+[data-theme="dark"]{
+  color-scheme:dark;
+  --cp-bg:#3d3b3a;
+  --cp-bg-elevated:#343231;
+  --cp-surface:#292929;
+  --cp-surface-soft:#2e2e2e;
+  --cp-border:#474747;
+  --cp-border-strong:#5f5f5f;
+  --cp-text:#dedede;
+  --cp-text-muted:#919191;
+  --cp-text-soft:#b0b0b0;
+  --cp-accent:#7BAFD4;
+  --cp-accent-hover:#9FD0EA;
+  --cp-accent-soft:rgba(123,175,212,.14);
+  --cp-accent-fg:#1a1a1a;
+  --cp-success:#4ade80;
+  --cp-danger:#f87171;
+  --cp-warning:#fbbf24;
+  --cp-link:#4da6ff;
+  /* Flip palette vars for dark. --navy/--navy2 become light because they are
+     used overwhelmingly as heading / figure TEXT; the few navy BACKGROUNDS are
+     re-pinned to literal dark below. */
+  --navy:#e6edf5;
+  --navy2:#cddcec;
+  --slate:#e6e6e6;
+  --gray:#a3adba;
+  --border:#3a3a3a;
+  --ltgray:#232323;
+  --sky:#16283a;
+  --lgreen:#123021;
+  --lamber:#3a2f18;
+  --lred:#3a1f1f;
+  --lpurple:#241a3a;
+  --ltblue:#4da6ff;
+}
+
+/* Dark: re-pin the few navy BACKGROUNDS to literal dark (navy var is now light) */
+[data-theme="dark"] .sidebar{background:#0e2841}
+[data-theme="dark"] .turnon{background:#12283a}
+[data-theme="dark"] .gloss-toggle{background:#156082}
+[data-theme="dark"] .btn-primary{background:var(--blue);color:#fff}
+[data-theme="dark"] .btn-primary:hover{background:#0f4a63}
+
+/* Dark: surfaces that hardcode #fff -> elevated dark surface */
+[data-theme="dark"] .card,
+[data-theme="dark"] .btn,
+[data-theme="dark"] .copy-btn,
+[data-theme="dark"] .search-results,
+[data-theme="dark"] .search input,
+[data-theme="dark"] .search input:focus,
+[data-theme="dark"] .mode-toggle button.active,
+[data-theme="dark"] .hub-score-card,
+[data-theme="dark"] .fear-card,
+[data-theme="dark"] .ctrl-cat,
+[data-theme="dark"] .ci-owner-input,
+[data-theme="dark"] .plane,
+[data-theme="dark"] .path-chip,
+[data-theme="dark"] .path-detail,
+[data-theme="dark"] .agent,
+[data-theme="dark"] .gloss-drawer,
+[data-theme="dark"] .gloss-head,
+[data-theme="dark"] .action-item,
+[data-theme="dark"] .action-card,
+[data-theme="dark"] .ask-btn,
+[data-theme="dark"] .matrix,
+[data-theme="dark"] .layer,
+[data-theme="dark"] .mat-step,
+[data-theme="dark"] .ask,
+[data-theme="dark"] .ref-table,
+[data-theme="dark"] .act-input,
+[data-theme="dark"] .ver-card,
+[data-theme="dark"] .faq-row,
+[data-theme="dark"] .dlog-card{background:#292929;color:var(--slate);border-color:#3a3a3a}
+
+/* Dark: chrome */
+[data-theme="dark"] .topbar{background:rgba(26,26,26,.96);border-bottom-color:#3a3a3a}
+[data-theme="dark"] .gloss-item{border-bottom-color:#333}
+
+/* Dark: keep the current-step gradient + navy table header dark (navy var is now light) */
+[data-theme="dark"] .mat-step.current{background:linear-gradient(135deg,#0e2841,#156082);color:#fff}
+[data-theme="dark"] .matrix th{background:#12283a;color:#fff}
+
+/* Dark: code column of ref tables -> lighter accent for contrast */
+[data-theme="dark"] .ref-table td:last-child{color:#4da6ff}
+
+/* Dark: filter chips keep an accent-colored active state */
+[data-theme="dark"] .filter-chip{background:#292929;color:var(--gray);border-color:#3a3a3a}
+[data-theme="dark"] .filter-chip.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+
+/* Dark: amber governance note -> light amber text on the flipped dark surface */
+[data-theme="dark"] .gov-note{color:#f2d59a;border-color:#5a4a1f}
+
+/* GOVERNANCE CONSOLE (SAM readiness tool) launch module */
+.gov-console{display:flex;flex-direction:column;gap:16px}
+.gov-note{display:flex;gap:12px;align-items:flex-start;background:var(--lamber);border:1px solid #FADF98;border-radius:var(--cp-radius);padding:12px 14px;color:#78350F;font-size:12.5px;line-height:1.5}
+.gov-note .gn-badge{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;background:var(--amber);color:#fff;padding:3px 8px;border-radius:12px;flex-shrink:0;margin-top:1px}
+.gov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.gov-cap{background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:var(--cp-radius);padding:13px 15px}
+.gov-cap h4{font-size:13px;font-weight:800;color:var(--cp-accent);margin-bottom:5px}
+.gov-cap p{font-size:12px;color:var(--cp-text-muted);line-height:1.5}
+.gov-launch{display:flex;gap:12px;flex-wrap:wrap;align-items:center;background:var(--cp-surface);border:1px solid var(--cp-border);border-radius:var(--cp-radius);padding:14px 16px}
+.gov-launch .gl-copy{flex:1;min-width:220px}
+.gov-launch .gl-copy .gl-title{font-size:14px;font-weight:800;color:var(--slate)}
+.gov-launch .gl-copy .gl-sub{font-size:12px;color:var(--cp-text-muted);margin-top:3px;line-height:1.5}
+.gov-frame{width:100%;height:70vh;min-height:480px;border:1px solid var(--cp-border);border-radius:var(--cp-radius);background:var(--cp-surface)}
+.gov-unset{background:var(--sky);border:1px dashed var(--ltblue);border-radius:var(--cp-radius);padding:14px 16px;font-size:12.5px;color:var(--navy);line-height:1.6}
+.gov-unset code{background:rgba(14,40,65,.08);padding:1px 6px;border-radius:5px;font-size:11.5px}
+
+/* ============================================================
+   PRINT — briefing prints cleanly (drop chrome, expand content)
+   ============================================================ */
+@media print{
+  .sidebar,.topbar,.gloss-toggle,.gloss-drawer,.next-step .ns-cta,.jg-nav,.filter-bar{display:none !important}
+  .main{margin-left:0 !important}
+  .content{padding:0 !important}
+  .app{display:block !important}
+  .card,.action-card,.gov-cap,.gov-launch{box-shadow:none !important;break-inside:avoid}
+  .section{page-break-after:always}
+  a[href^="http"]::after{content:" (" attr(href) ")";font-size:10px;color:#555}
+  body{font-size:12px}
+  .gov-frame{display:none !important}
+}
 .jg-cta{display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between;background:var(--sky);border:1px solid var(--border);border-radius:12px;padding:14px 16px;font-size:13.5px;color:var(--slate)}
 .jg-actions{background:linear-gradient(180deg,#fff,#fbfdff);border:1px solid var(--border);border-radius:14px;padding:16px 16px 14px;box-shadow:var(--shadow)}
 .jg-actions-h{font-size:14px;font-weight:700;color:var(--navy);margin-bottom:12px}

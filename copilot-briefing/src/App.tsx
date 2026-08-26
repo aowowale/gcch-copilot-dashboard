@@ -5,6 +5,7 @@ import { SECTIONS } from './lib/sections'
 import { meta } from './data/content'
 import { SECTION_COMPONENTS } from './sections/registry'
 import { useStore } from './lib/store'
+import { ThemeToggle } from './components/Primitives'
 
 const GUIDED_SEQUENCE = ['home', 'tracker', 'controls', 'ask']
 
@@ -73,6 +74,7 @@ function Topbar() {
           )}
         </div>
       )}
+      <ThemeToggle />
       <button className="btn" onClick={() => window.print()}>Print</button>
     </div>
   )

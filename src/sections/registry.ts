@@ -7,6 +7,7 @@ import { Rss, Guardrails, Dlp, AiSec, Sam, Acceptance, Human, Lessons, Reference
 import { Actions, Ask, Other } from './Interactive'
 import { TestPlan } from './TestPlan'
 import { Tracker } from './Dashboard'
+import { GovernanceConsole } from './Governance'
 
 export const SECTION_COMPONENTS: Record<string, ComponentType> = {
   home: Home,
@@ -31,5 +32,6 @@ export const SECTION_COMPONENTS: Record<string, ComponentType> = {
   reference: Reference,
   testplan: TestPlan,
   tracker: Tracker,
+  governance: GovernanceConsole,
   other: Other,
 }
